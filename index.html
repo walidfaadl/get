@@ -162,7 +162,7 @@
 <div class="wrap">
 
   <div class="proxy-note">
-    ⚡ تعمل هذه الأداة عبر <strong>allorigins.win</strong> كـ proxy مفتوح للتحايل على قيود CORS — لا حاجة لسيرفر.
+    ⚡ تعمل هذه الأداة عبر proxies مفتوحة متعددة — تجرب تلقائياً حتى ينجح الاتصال.
   </div>
 
   <div class="card">
@@ -302,14 +302,38 @@ async function go() {
 
     const gdeltUrl = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=artlist&maxrecords=${mx}&startdatetime=${fmt(df)}000000&enddatetime=${fmt(dt)}235959&sort=DateDesc&format=json`;
 
-    // Use allorigins as CORS proxy
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(gdeltUrl)}`;
+    // Try multiple CORS proxies in order
+    const proxies = [
+      u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+      u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+      u => `https://thingproxy.freeboard.io/fetch/${u}`,
+    ];
 
-    setStatus('جارٍ الاتصال عبر proxy...', 'load');
-    const resp = await fetch(proxyUrl);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const outer = await resp.json();
-    const data = JSON.parse(outer.contents);
+    let data = null;
+    let lastErr = '';
+    for (let i = 0; i < proxies.length; i++) {
+      try {
+        setStatus(`جارٍ الاتصال عبر proxy ${i+1}/${proxies.length}...`, 'load');
+        const proxyUrl = proxies[i](gdeltUrl);
+        const resp = await fetch(proxyUrl);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const text = await resp.text();
+        // corsproxy.io and thingproxy return raw JSON
+        // codetabs returns raw JSON too
+        try {
+          data = JSON.parse(text);
+        } catch {
+          // maybe wrapped
+          const outer = JSON.parse(text);
+          data = typeof outer.contents === 'string' ? JSON.parse(outer.contents) : outer;
+        }
+        if (data) break;
+      } catch(e) {
+        lastErr = e.message;
+        continue;
+      }
+    }
+    if (!data) throw new Error(`فشلت جميع الـ proxies: ${lastErr}`);
     const arts = data.articles || [];
 
     if (!arts.length) {
