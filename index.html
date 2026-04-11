@@ -1,1 +1,255 @@
 
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رصد الإعلام التركي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c0f;--surface:#12151a;--surface2:#1a1f28;--border:#252c38;--accent:#e8a020;--text:#e2e8f0;--muted:#64748b;--green:#10b981;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;direction:rtl;min-height:100vh;}
+  .header{background:linear-gradient(135deg,#0a0c0f,#1a1228,#0a0c0f);border-bottom:1px solid var(--border);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .htitle{font-size:18px;font-weight:700;}.hsub{font-size:12px;color:var(--muted);margin-top:3px;}
+  .dot{width:10px;height:10px;background:var(--accent);border-radius:50%;box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;margin-left:10px;flex-shrink:0;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .badge{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:#4ade80;padding:5px 12px;border-radius:20px;font-size:11px;}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 16px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px;}
+  label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500;}
+  input,select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;outline:none;transition:.2s;}
+  input:focus,select:focus{border-color:var(--accent);}
+  select option{background:var(--surface2);}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+  .kw-wrap{border-top:1px solid var(--border);padding-top:14px;margin-top:14px;}
+  .kw-lbl{font-size:11px;color:var(--muted);margin-bottom:10px;}
+  .kw-flex{display:flex;flex-wrap:wrap;gap:8px;}
+  .kw{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-size:12px;cursor:pointer;color:var(--muted);transition:.2s;}
+  .kw.on{background:rgba(232,160,32,.12);border-color:var(--accent);color:var(--accent);}
+  .btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;padding:12px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;transition:.2s;}
+  .btn:hover:not(:disabled){background:#f0b030;}.btn:disabled{opacity:.5;cursor:not-allowed;}
+  .status{border-radius:10px;padding:12px 16px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:16px;border:1px solid var(--border);background:var(--surface);}
+  .status.ok{border-color:rgba(16,185,129,.4);color:var(--green);}.status.err{border-color:rgba(192,57,43,.5);color:#e74c3c;}.status.load{border-color:rgba(232,160,32,.4);}
+  .spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+  .sc2{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+  .sv{font-size:20px;font-weight:900;color:var(--accent);line-height:1.2;margin-bottom:4px;}.sl{font-size:11px;color:var(--muted);}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+  .ctitle{font-size:13px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .ctitle::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px;flex-shrink:0;}
+  .brow{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .blbl{font-size:11px;color:var(--muted);width:90px;text-align:left;flex-shrink:0;direction:ltr;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .btrack{flex:1;background:var(--surface2);border-radius:3px;height:22px;overflow:hidden;}
+  .bfill{height:100%;border-radius:3px;transition:width .7s ease;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;color:#000;justify-content:flex-end;}
+  .bcnt{font-size:11px;color:var(--muted);width:32px;text-align:right;flex-shrink:0;}
+  .trow{margin-bottom:12px;}.th{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
+  .tt{color:var(--text);}.tp2{color:var(--muted);font-size:11px;}
+  .ttrack{background:var(--surface2);border-radius:3px;height:8px;overflow:hidden;}
+  .tfill{height:100%;border-radius:3px;transition:width .9s ease;}
+  .analysis-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px;}
+  .analysis-text{font-size:14px;line-height:2;color:var(--text);}
+  .empty{text-align:center;padding:60px 20px;color:var(--muted);}
+  .ei{font-size:40px;margin-bottom:12px;}.et{font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px;}.ed{font-size:13px;line-height:1.6;}
+  .fnote{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:11px;color:var(--muted);line-height:1.7;}
+  .free-badge{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:#4ade80;padding:3px 10px;border-radius:8px;font-size:11px;display:inline-block;margin-top:6px;}
+  .hidden{display:none!important;}
+  @media(max-width:600px){.grid3{grid-template-columns:1fr 1fr;}.stats4{grid-template-columns:1fr 1fr;}.g2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center">
+    <div class="dot"></div>
+    <div><div class="htitle">رصد الإعلام التركي</div><div class="hsub">الاستيطان — الضفة الغربية | الحجم والزوايا التحريرية</div></div>
+  </div>
+  <div class="badge">✦ Groq Free</div>
+</div>
+<div class="wrap">
+  <div class="card">
+    <label>🔑 Groq API Key</label>
+    <input type="password" id="apiKey" placeholder="gsk_..." autocomplete="off">
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;">
+      احصل على مفتاحك المجاني من <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">console.groq.com/keys</a>
+      <span class="free-badge">مجاني ✓</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="grid3">
+      <div><label>من تاريخ</label><input type="date" id="df" value="2026-01-01"></div>
+      <div><label>إلى تاريخ</label><input type="date" id="dt" value="2026-04-11"></div>
+      <div><label>عمق التحليل</label>
+        <select id="depth">
+          <option value="brief">سريع</option>
+          <option value="detailed" selected>مفصّل</option>
+          <option value="comprehensive">شامل</option>
+        </select>
+      </div>
+    </div>
+    <div class="kw-wrap">
+      <div class="kw-lbl">محاور التحليل:</div>
+      <div class="kw-flex">
+        <span class="kw on" data-topic="settlement_volume">حجم التغطية الاستيطانية</span>
+        <span class="kw on" data-topic="editorial_framing">الزاوية التحريرية</span>
+        <span class="kw on" data-topic="sources_used">المصادر المعتمدة</span>
+        <span class="kw" data-topic="compared_to_other_media">مقارنة بإعلام آخر</span>
+        <span class="kw" data-topic="topics_ignored">الموضوعات المتجاهلة</span>
+        <span class="kw" data-topic="language_tone">اللغة والمفردات</span>
+      </div>
+    </div>
+    <button class="btn" id="sb" onclick="go()">🔍 ابدأ التحليل</button>
+  </div>
+  <div class="status hidden" id="stbar">
+    <div class="spin hidden" id="spn"></div>
+    <span id="stxt"></span>
+  </div>
+  <div id="res" class="hidden">
+    <div class="stats4">
+      <div class="sc2"><div class="sv" id="s1">—</div><div class="sl">أبرز مصدر تركي</div></div>
+      <div class="sc2"><div class="sv" id="s2">—</div><div class="sl">الزاوية السائدة</div></div>
+      <div class="sc2"><div class="sv" id="s3">—</div><div class="sl">نسبة الإدانة</div></div>
+      <div class="sc2"><div class="sv" id="s4">—</div><div class="sl">مستوى التغطية</div></div>
+    </div>
+    <div class="analysis-card">
+      <div class="ctitle">التحليل التفصيلي</div>
+      <div class="analysis-text" id="analysisText"></div>
+    </div>
+    <div class="g2">
+      <div class="card" style="margin:0"><div class="ctitle">المصادر التركية</div><div id="sc"></div></div>
+      <div class="card" style="margin:0"><div class="ctitle">الزاوية التحريرية</div><div id="tc"></div></div>
+    </div>
+  </div>
+  <div class="empty" id="emp">
+    <div class="ei">📡</div>
+    <div class="et">جاهز للتحليل</div>
+    <div class="ed">أدخل Groq API Key المجاني<br>واختر محاور التحليل ثم اضغط "ابدأ التحليل"</div>
+  </div>
+  <div class="fnote"><strong>آلية العمل:</strong> يستخدم Groq (مجاني) لتحليل تغطية الإعلام التركي للضفة الغربية. المفتاح يُحفظ في متصفحك فقط.</div>
+</div>
+<script>
+document.querySelectorAll('.kw').forEach(k=>k.onclick=()=>k.classList.toggle('on'));
+const keyInput=document.getElementById('apiKey');
+try{const s=localStorage.getItem('groq_key');if(s)keyInput.value=s;}catch{}
+keyInput.addEventListener('input',()=>{try{localStorage.setItem('groq_key',keyInput.value);}catch{}});
+function getTopics(){return[...document.querySelectorAll('.kw.on')].map(k=>k.dataset.topic);}
+function setStatus(msg,type){
+  const b=document.getElementById('stbar');
+  b.className=`status ${type}`;b.classList.remove('hidden');
+  document.getElementById('spn').classList.toggle('hidden',type!=='load');
+  document.getElementById('stxt').textContent=msg;
+}
+function buildPrompt(topics,df,dt,depth){
+  const map={
+    settlement_volume:'حجم التغطية الاستيطانية: التكرار والاستمرارية',
+    editorial_framing:'الزاوية التحريرية: إدانة / محايد / تضامن',
+    sources_used:'المصادر المعتمدة: فلسطينية أم إسرائيلية أم أممية',
+    compared_to_other_media:'المقارنة مع الإعلام الغربي والعربي',
+    topics_ignored:'الموضوعات المتجاهلة أو المقلّلة',
+    language_tone:'اللغة والمفردات: استعمار / احتلال / إرهاب',
+  };
+  const topicsText=topics.map(t=>`- ${map[t]||t}`).join('\n');
+  const depthText={brief:'قدّم تحليلاً موجزاً في 3-4 فقرات.',detailed:'قدّم تحليلاً مفصلاً في 6-8 فقرات مع أمثلة.',comprehensive:'قدّم تحليلاً شاملاً مع أرقام وأمثلة وسياق.',}[depth];
+  return `أنت محلل إعلامي متخصص في رصد الإعلام التركي وتغطيته للقضية الفلسطينية.
+
+حلّل تغطية الإعلام التركي باللغة التركية لموضوع الاستيطان الإسرائيلي في الضفة الغربية خلال الفترة ${df} إلى ${dt}.
+
+المحاور:
+${topicsText}
+
+المصادر التركية: Anadolu Ajansı، TRT Haber، Sabah، Hürriyet، Milliyet، Yeni Şafak، Cumhuriyet، Sözcü، CNN Türk، NTV، Habertürk.
+
+${depthText}
+
+أضف في نهاية ردك هذه الكتلة مع تعديل الأرقام لتعكس تقديرك الفعلي:
+<json>
+{
+  "top_sources": [{"name":"AA","pct":35},{"name":"TRT Haber","pct":25},{"name":"Sabah","pct":15},{"name":"Yeni Şafak","pct":12},{"name":"Hürriyet","pct":8}],
+  "tone": {"condemnation":75,"neutral":20,"positive":5},
+  "coverage_level": "مكثف",
+  "dominant_frame": "إدانة الاستيطان"
+}
+</json>`;
+}
+function parseJSON(text){
+  const m=text.match(/<json>([\s\S]*?)<\/json>/);
+  if(!m)return null;
+  try{return JSON.parse(m[1].trim());}catch{return null;}
+}
+function renderSources(sources){
+  if(!sources?.length)return;
+  const max=Math.max(...sources.map(s=>s.pct),1);
+  const colors=['#e8a020','#f0b030','#c0392b','#3b82f6','#10b981','#8b5cf6','#ec4899'];
+  document.getElementById('sc').innerHTML=sources.map((s,i)=>`
+    <div class="brow">
+      <div class="blbl" title="${s.name}">${s.name}</div>
+      <div class="btrack"><div class="bfill" style="width:${(s.pct/max*100).toFixed(0)}%;background:${colors[i%colors.length]}">${s.pct>8?s.pct+'%':''}</div></div>
+      <div class="bcnt">${s.pct}%</div>
+    </div>`).join('');
+}
+function renderTone(tone){
+  if(!tone)return;
+  const rows=[
+    {l:'إدانة / انتقاد',n:tone.condemnation||0,c:'#c0392b'},
+    {l:'محايد / وصفي',n:tone.neutral||0,c:'#64748b'},
+    {l:'إيجابي / داعم',n:tone.positive||0,c:'#10b981'},
+  ];
+  document.getElementById('tc').innerHTML=rows.map(r=>`
+    <div class="trow">
+      <div class="th"><span class="tt">${r.l}</span><span class="tp2">${r.n}%</span></div>
+      <div class="ttrack"><div class="tfill" style="width:${r.n}%;background:${r.c}"></div></div>
+    </div>`).join('');
+}
+async function go(){
+  const apiKey=document.getElementById('apiKey').value.trim();
+  if(!apiKey){alert('أدخل Groq API Key أولاً');return;}
+  const topics=getTopics();
+  if(!topics.length){alert('اختر محوراً واحداً على الأقل');return;}
+  const df=document.getElementById('df').value;
+  const dt=document.getElementById('dt').value;
+  const depth=document.getElementById('depth').value;
+  const btn=document.getElementById('sb');
+  btn.disabled=true;
+  document.getElementById('emp').classList.add('hidden');
+  document.getElementById('res').classList.add('hidden');
+  setStatus('جارٍ الاتصال بـ Groq...','load');
+  const textEl=document.getElementById('analysisText');
+  try{
+    const url="https://api.groq.com/openai/v1/chat/completions";
+    const resp=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiKey}`},
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        messages:[{role:'user',content:buildPrompt(topics,df,dt,depth)}],
+        max_tokens:2048,
+        temperature:0.7
+      })
+    });
+    if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||`HTTP ${resp.status}`);}
+    const data=await resp.json();
+    const full=data.choices?.[0]?.message?.content||'';
+    if(!full)throw new Error('لم يأتِ رد من Groq');
+    const display=full.replace(/<json>[\s\S]*?<\/json>/g,'').trim();
+    textEl.innerHTML=display.replace(/\n/g,'<br>');
+    const stats=parseJSON(full);
+    if(stats){
+      document.getElementById('s1').textContent=stats.top_sources?.[0]?.name||'—';
+      document.getElementById('s2').textContent=stats.dominant_frame||'—';
+      document.getElementById('s3').textContent=stats.tone?.condemnation!=null?stats.tone.condemnation+'%':'—';
+      document.getElementById('s4').textContent=stats.coverage_level||'—';
+      renderSources(stats.top_sources);
+      renderTone(stats.tone);
+    }
+    document.getElementById('res').classList.remove('hidden');
+    setStatus('✓ اكتمل التحليل','ok');
+  }catch(e){
+    setStatus(`خطأ: ${e.message}`,'err');
+    textEl.innerHTML='';
+    console.error(e);
+  }
+  btn.disabled=false;
+}
+</script>
+</body>
+</html>
