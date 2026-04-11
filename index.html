@@ -1,1 +1,433 @@
 
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رصد الإعلام التركي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c0f;--surface:#12151a;--surface2:#1a1f28;--border:#252c38;--accent:#e8a020;--text:#e2e8f0;--muted:#64748b;--green:#10b981;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;direction:rtl;min-height:100vh;}
+  .header{background:linear-gradient(135deg,#0a0c0f,#1a1228,#0a0c0f);border-bottom:1px solid var(--border);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .htitle{font-size:18px;font-weight:700;}.hsub{font-size:12px;color:var(--muted);margin-top:3px;}
+  .dot{width:10px;height:10px;background:var(--accent);border-radius:50%;box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;margin-left:10px;flex-shrink:0;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .badge{background:rgba(232,160,32,.1);border:1px solid rgba(232,160,32,.3);color:var(--accent);padding:5px 12px;border-radius:20px;font-size:11px;}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 16px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px;}
+  label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500;}
+  input,select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;outline:none;transition:.2s;}
+  input:focus,select:focus{border-color:var(--accent);}
+  select option{background:var(--surface2);}
+  .grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .kw-wrap{border-top:1px solid var(--border);padding-top:14px;margin-top:14px;}
+  .kw-lbl{font-size:11px;color:var(--muted);margin-bottom:10px;}
+  .kw-flex{display:flex;flex-wrap:wrap;gap:8px;}
+  .kw{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-size:12px;cursor:pointer;color:var(--muted);transition:.2s;direction:ltr;}
+  .kw.on{background:rgba(232,160,32,.12);border-color:var(--accent);color:var(--accent);}
+  .btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;padding:12px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;transition:.2s;}
+  .btn:hover:not(:disabled){background:#f0b030;}.btn:disabled{opacity:.5;cursor:not-allowed;}
+  .status{border-radius:10px;padding:12px 16px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:16px;border:1px solid var(--border);background:var(--surface);}
+  .status.ok{border-color:rgba(16,185,129,.4);color:var(--green);}.status.err{border-color:rgba(192,57,43,.5);color:#e74c3c;}.status.load{border-color:rgba(232,160,32,.4);}
+  .spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+  .sc2{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+  .sv{font-size:26px;font-weight:900;color:var(--accent);line-height:1.2;margin-bottom:4px;}.sl{font-size:11px;color:var(--muted);}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+  .ctitle{font-size:13px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .ctitle::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px;flex-shrink:0;}
+  .brow{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .blbl{font-size:11px;color:var(--muted);width:90px;text-align:left;flex-shrink:0;direction:ltr;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .btrack{flex:1;background:var(--surface2);border-radius:3px;height:22px;overflow:hidden;}
+  .bfill{height:100%;border-radius:3px;transition:width .7s ease;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;color:#000;justify-content:flex-end;}
+  .bcnt{font-size:11px;color:var(--muted);width:32px;text-align:right;flex-shrink:0;}
+  .trow{margin-bottom:12px;}.th{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
+  .tt{color:var(--text);}.tp2{color:var(--muted);font-size:11px;}
+  .ttrack{background:var(--surface2);border-radius:3px;height:8px;overflow:hidden;}
+  .tfill{height:100%;border-radius:3px;transition:width .9s ease;}
+  .analysis-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px;}
+  .analysis-text{font-size:14px;line-height:2;color:var(--text);}
+  .cursor{display:inline-block;width:2px;height:16px;background:var(--accent);animation:blink .7s infinite;vertical-align:middle;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+  .articles-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+  .ah{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .aht{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+  .aht::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px;}
+  .cbadge{background:rgba(232,160,32,.12);color:var(--accent);padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600;}
+  .aitem{padding:14px 20px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;text-decoration:none;color:inherit;transition:.15s;}
+  .aitem:last-child{border-bottom:none;}.aitem:hover{background:var(--surface2);}
+  .atitle{font-size:13px;color:var(--text);margin-bottom:5px;line-height:1.5;direction:ltr;text-align:left;}
+  .ameta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .asrc{font-size:11px;color:var(--accent);font-weight:500;}.adate{font-size:10px;color:var(--muted);}
+  .tpill{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:500;}
+  .tn{background:rgba(192,57,43,.15);color:#e74c3c;}.tpos{background:rgba(16,185,129,.15);color:var(--green);}.tnu{background:rgba(100,116,139,.15);color:var(--muted);}
+  .ascore{text-align:center;flex-shrink:0;}.asv{font-size:18px;font-weight:900;line-height:1;}.asl{font-size:9px;color:var(--muted);}
+  .monthly-chart{display:flex;align-items:flex-end;gap:4px;height:80px;margin-top:8px;}
+  .month-bar{flex:1;background:var(--accent);border-radius:3px 3px 0 0;opacity:.8;transition:height .5s ease;position:relative;min-width:20px;}
+  .month-bar:hover{opacity:1;}
+  .month-label{font-size:9px;color:var(--muted);text-align:center;margin-top:4px;}
+  .month-wrap{flex:1;display:flex;flex-direction:column;align-items:center;}
+  .empty{text-align:center;padding:60px 20px;color:var(--muted);}
+  .ei{font-size:40px;margin-bottom:12px;}.et{font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px;}.ed{font-size:13px;line-height:1.6;}
+  .fnote{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:11px;color:var(--muted);line-height:1.7;}
+  .tab-bar{display:flex;gap:8px;margin-bottom:20px;}
+  .tab{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:12px;cursor:pointer;color:var(--muted);transition:.2s;font-family:'Tajawal',sans-serif;}
+  .tab.on{background:rgba(232,160,32,.12);border-color:var(--accent);color:var(--accent);}
+  .hidden{display:none!important;}
+  @media(max-width:600px){.grid4{grid-template-columns:1fr 1fr;}.stats4{grid-template-columns:1fr 1fr;}.g2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center">
+    <div class="dot"></div>
+    <div><div class="htitle">رصد الإعلام التركي</div><div class="hsub">الضفة الغربية — الاستيطان | بيانات حقيقية من GDELT + تحليل Groq</div></div>
+  </div>
+  <div class="badge">GDELT + Groq</div>
+</div>
+<div class="wrap">
+
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>🔑 Groq API Key</label>
+        <input type="password" id="groqKey" placeholder="gsk_..." autocomplete="off">
+      </div>
+      <div>
+        <label>🔗 Cloudflare Worker URL</label>
+        <input type="text" id="workerUrl" placeholder="https://trmedia.walid-faadl.workers.dev" value="https://trmedia.walid-faadl.workers.dev">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid4">
+      <div><label>من تاريخ</label><input type="date" id="df" value="2026-01-01"></div>
+      <div><label>إلى تاريخ</label><input type="date" id="dt" value="2026-04-11"></div>
+      <div><label>عدد المقالات</label>
+        <select id="maxrec">
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="250" selected>250</option>
+        </select>
+      </div>
+      <div><label>الكلمة المفتاحية</label>
+        <select id="kwsel">
+          <option value="yerleşim Batı Şeria">yerleşim + Batı Şeria</option>
+          <option value="yerleşimci Filistin">yerleşimci + Filistin</option>
+          <option value="işgal Batı Şeria">işgal + Batı Şeria</option>
+          <option value="ilhak Batı Şeria">ilhak + Batı Şeria</option>
+          <option value="Batı Şeria saldırı">saldırı + Batı Şeria</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" id="sb" onclick="go()">🔍 ابدأ الرصد والتحليل</button>
+  </div>
+
+  <div class="status hidden" id="stbar">
+    <div class="spin hidden" id="spn"></div>
+    <span id="stxt"></span>
+  </div>
+
+  <div id="res" class="hidden">
+
+    <div class="stats4">
+      <div class="sc2"><div class="sv" id="s1">0</div><div class="sl">مقال مرصود فعلياً</div></div>
+      <div class="sc2"><div class="sv" id="s2">0</div><div class="sl">مصدر تركي مختلف</div></div>
+      <div class="sc2"><div class="sv" id="s3">0%</div><div class="sl">نبرة إدانة</div></div>
+      <div class="sc2"><div class="sv" id="s4">0</div><div class="sl">متوسط النبرة</div></div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab on" onclick="showTab('charts')">📊 الإحصاءات</button>
+      <button class="tab" onclick="showTab('analysis')">🧠 تحليل Groq</button>
+      <button class="tab" onclick="showTab('articles')">📰 المقالات</button>
+    </div>
+
+    <div id="tab-charts">
+      <div class="g2">
+        <div class="card" style="margin:0">
+          <div class="ctitle">أبرز المصادر التركية (عدد حقيقي)</div>
+          <div id="sc"></div>
+        </div>
+        <div class="card" style="margin:0">
+          <div class="ctitle">توزيع النبرة التحريرية</div>
+          <div id="tc"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ctitle">التوزيع الزمني الشهري</div>
+        <div style="display:flex;align-items:flex-end;gap:4px;height:100px;" id="monthly"></div>
+      </div>
+    </div>
+
+    <div id="tab-analysis" class="hidden">
+      <div class="analysis-card">
+        <div class="ctitle">تحليل Groq للزوايا التحريرية</div>
+        <div class="analysis-text" id="analysisText"></div>
+      </div>
+    </div>
+
+    <div id="tab-articles" class="hidden">
+      <div class="articles-wrap">
+        <div class="ah">
+          <div class="aht">المقالات المرصودة من GDELT</div>
+          <div class="cbadge" id="ac">0</div>
+        </div>
+        <div id="al"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="empty" id="emp">
+    <div class="ei">📡</div>
+    <div class="et">جاهز للرصد الحقيقي</div>
+    <div class="ed">البيانات من GDELT مباشرة عبر Cloudflare Worker<br>التحليل النوعي من Groq AI</div>
+  </div>
+
+  <div class="fnote">
+    <strong>المصدر:</strong> GDELT Project — قاعدة بيانات إعلامية عالمية. الأرقام حقيقية من مقالات فعلية.
+    النبرة من -100 (إدانة شديدة) إلى +100. <strong>Groq</strong> يحلل عينة من المقالات لاستخراج الزوايا التحريرية.
+  </div>
+</div>
+
+<script>
+// Keys storage
+const groqInput = document.getElementById('groqKey');
+try { const s = localStorage.getItem('groq_key'); if(s) groqInput.value = s; } catch{}
+groqInput.addEventListener('input', () => { try { localStorage.setItem('groq_key', groqInput.value); } catch{} });
+
+function showTab(name) {
+  ['charts','analysis','articles'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== name);
+  });
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('on', ['charts','analysis','articles'][i] === name);
+  });
+}
+
+function setStatus(msg, type) {
+  const b = document.getElementById('stbar');
+  b.className = `status ${type}`;
+  b.classList.remove('hidden');
+  document.getElementById('spn').classList.toggle('hidden', type !== 'load');
+  document.getElementById('stxt').textContent = msg;
+}
+
+function fmt(d) { return d.replace(/-/g,''); }
+
+function getDomain(url) {
+  try { return new URL(url).hostname.replace('www.',''); } catch { return url||''; }
+}
+
+function parseTone(t) {
+  if (!t) return null;
+  const v = parseFloat(t.split(',')[0]);
+  return isNaN(v) ? null : v;
+}
+
+function toneInfo(t) {
+  if (t === null) return { lbl:'محايد', cls:'tnu' };
+  if (t < -5) return { lbl:'إدانة شديدة', cls:'tn' };
+  if (t < -2) return { lbl:'انتقادي', cls:'tn' };
+  if (t >  2) return { lbl:'إيجابي', cls:'tpos' };
+  return { lbl:'محايد', cls:'tnu' };
+}
+
+function renderSources(arts) {
+  const cnts = {};
+  arts.forEach(a => { const d = getDomain(a.url||''); cnts[d] = (cnts[d]||0)+1; });
+  const sorted = Object.entries(cnts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max = sorted[0]?.[1]||1;
+  const colors = ['#e8a020','#f0b030','#c0392b','#3b82f6','#10b981','#8b5cf6','#ec4899','#f59e0b'];
+  document.getElementById('sc').innerHTML = sorted.map(([s,c],i) => `
+    <div class="brow">
+      <div class="blbl" title="${s}">${s}</div>
+      <div class="btrack"><div class="bfill" style="width:${(c/max*100).toFixed(0)}%;background:${colors[i%colors.length]}">${c>3?c:''}</div></div>
+      <div class="bcnt">${c}</div>
+    </div>`).join('');
+}
+
+function renderTone(arts) {
+  const tones = arts.map(a => parseTone(a.tone)).filter(t => t !== null);
+  const tot = tones.length || 1;
+  const sv  = tones.filter(t=>t<-5).length;
+  const neg = tones.filter(t=>t>=-5&&t<-2).length;
+  const neu = tones.filter(t=>t>=-2&&t<=2).length;
+  const pos = tones.filter(t=>t>2).length;
+  const rows = [
+    {l:'إدانة شديدة',  n:sv,  c:'#c0392b'},
+    {l:'انتقادي',      n:neg, c:'#e67e22'},
+    {l:'محايد / وصفي', n:neu, c:'#64748b'},
+    {l:'إيجابي',       n:pos, c:'#10b981'},
+  ];
+  document.getElementById('tc').innerHTML = rows.map(r => `
+    <div class="trow">
+      <div class="th"><span class="tt">${r.l}</span><span class="tp2">${r.n} (${(r.n/tot*100).toFixed(0)}%)</span></div>
+      <div class="ttrack"><div class="tfill" style="width:${(r.n/tot*100).toFixed(0)}%;background:${r.c}"></div></div>
+    </div>`).join('');
+
+  const negPct = Math.round((sv+neg)/tot*100);
+  const avgTone = tones.length ? (tones.reduce((a,b)=>a+b,0)/tones.length).toFixed(1) : '—';
+  document.getElementById('s3').textContent = negPct + '%';
+  document.getElementById('s4').textContent = avgTone;
+}
+
+function renderMonthly(arts) {
+  const months = {};
+  arts.forEach(a => {
+    const d = a.seendate || '';
+    if (d.length >= 6) {
+      const m = d.slice(0,4) + '-' + d.slice(4,6);
+      months[m] = (months[m]||0) + 1;
+    }
+  });
+  const sorted = Object.entries(months).sort((a,b) => a[0].localeCompare(b[0]));
+  const max = Math.max(...sorted.map(s=>s[1]), 1);
+  document.getElementById('monthly').innerHTML = sorted.map(([m,c]) => `
+    <div class="month-wrap" title="${m}: ${c} مقال">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${c}</div>
+      <div style="width:100%;height:${Math.max((c/max*80),4).toFixed(0)}px;background:var(--accent);border-radius:3px 3px 0 0;opacity:.8;"></div>
+      <div style="font-size:9px;color:var(--muted);margin-top:4px;">${m.slice(5)}</div>
+    </div>`).join('');
+}
+
+function renderArticles(arts) {
+  document.getElementById('al').innerHTML = arts.slice(0,100).map(a => {
+    const t = parseTone(a.tone);
+    const ti = toneInfo(t);
+    const tv = t !== null ? t.toFixed(1) : '—';
+    const d = a.seendate||'';
+    const df = d.length>=8 ? `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}` : '';
+    const sc = t!==null?(t<-2?'#e74c3c':t>2?'#10b981':'#64748b'):'#64748b';
+    return `<a href="${a.url||'#'}" target="_blank" rel="noopener" class="aitem">
+      <div>
+        <div class="atitle">${a.title||'(بدون عنوان)'}</div>
+        <div class="ameta">
+          <span class="asrc">${getDomain(a.url||'')}</span>
+          <span class="adate">${df}</span>
+          <span class="tpill ${ti.cls}">${ti.lbl}</span>
+        </div>
+      </div>
+      <div class="ascore">
+        <div class="asv" style="color:${sc}">${tv}</div>
+        <div class="asl">نبرة</div>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+async function analyzeWithGroq(arts, groqKey) {
+  const sample = arts.slice(0,30).map(a => `- ${a.title||''} (${getDomain(a.url||'')})`).join('\n');
+  const tones = arts.map(a => parseTone(a.tone)).filter(t=>t!==null);
+  const avgTone = tones.length ? (tones.reduce((a,b)=>a+b,0)/tones.length).toFixed(1) : '—';
+
+  const prompt = `أنت محلل إعلامي. إليك عينة من ${arts.length} مقالاً تركياً عن الاستيطان في الضفة الغربية (متوسط النبرة: ${avgTone} على مقياس -100 إلى +100):
+
+${sample}
+
+حلّل في 5-6 فقرات:
+1. الزاوية التحريرية السائدة
+2. المصطلحات والمفردات الأكثر استخداماً
+3. زوايا الرواية (قانوني، إنساني، سياسي...)
+4. ما يُبرز وما يُغيَّب
+5. الفرق بين المصادر الحكومية (AA, TRT) والمستقلة`;
+
+  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${groqKey}` },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role:'user', content: prompt }],
+      max_tokens: 1500,
+      temperature: 0.7,
+      stream: true
+    })
+  });
+
+  if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message||`Groq HTTP ${resp.status}`); }
+
+  const textEl = document.getElementById('analysisText');
+  textEl.innerHTML = '<span class="cursor"></span>';
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let full = '';
+
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    const lines = decoder.decode(value).split('\n');
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const d = line.slice(6);
+      if (d==='[DONE]') continue;
+      try {
+        const p = JSON.parse(d);
+        const txt = p.choices?.[0]?.delta?.content||'';
+        if (txt) { full += txt; textEl.innerHTML = full.replace(/\n/g,'<br>') + '<span class="cursor"></span>'; }
+      } catch {}
+    }
+  }
+  textEl.innerHTML = full.replace(/\n/g,'<br>');
+}
+
+async function go() {
+  const groqKey = document.getElementById('groqKey').value.trim();
+  const workerUrl = document.getElementById('workerUrl').value.trim().replace(/\/$/, '');
+  if (!workerUrl) { alert('أدخل رابط الـ Worker'); return; }
+
+  const df = document.getElementById('df').value;
+  const dt = document.getElementById('dt').value;
+  const max = document.getElementById('maxrec').value;
+  const kw = document.getElementById('kwsel').value;
+  const btn = document.getElementById('sb');
+
+  btn.disabled = true;
+  document.getElementById('emp').classList.add('hidden');
+  document.getElementById('res').classList.add('hidden');
+  setStatus('جارٍ جلب البيانات من GDELT عبر Cloudflare Worker...', 'load');
+
+  try {
+    const url = `${workerUrl}/?query=${encodeURIComponent(kw)}&from=${fmt(df)}000000&to=${fmt(dt)}235959&max=${max}`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`Worker error: ${resp.status}`);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    const arts = data.articles || [];
+    if (!arts.length) { setStatus('لا نتائج — جرب كلمة مفتاحية مختلفة', 'err'); btn.disabled=false; return; }
+
+    const sources = new Set(arts.map(a => getDomain(a.url||''))).size;
+    document.getElementById('s1').textContent = arts.length;
+    document.getElementById('s2').textContent = sources;
+    document.getElementById('ac').textContent = arts.length + ' مقال';
+
+    renderSources(arts);
+    renderTone(arts);
+    renderMonthly(arts);
+    renderArticles(arts);
+
+    document.getElementById('res').classList.remove('hidden');
+    setStatus(`✓ ${arts.length} مقال حقيقي من ${sources} مصدراً تركياً`, 'ok');
+
+    // Groq analysis
+    if (groqKey) {
+      setStatus('جارٍ تحليل Groq للزوايا التحريرية...', 'load');
+      await analyzeWithGroq(arts, groqKey);
+      setStatus(`✓ اكتمل — ${arts.length} مقال + تحليل Groq`, 'ok');
+    }
+
+  } catch(e) {
+    setStatus(`خطأ: ${e.message}`, 'err');
+    console.error(e);
+  }
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
