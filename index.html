@@ -792,121 +792,15 @@
   </div>
 </footer>
 
-<!-- News Modal -->
-<div class="modal-backdrop" id="newsModal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()" aria-label="إغلاق">✕</button>
-    <div class="modal-image" id="modalImage"></div>
-    <div class="modal-body">
-      <div class="modal-meta" id="modalMeta"></div>
-      <h2 id="modalTitle"></h2>
-      <div class="content" id="modalContent"></div>
-    </div>
-  </div>
-</div>
-
+<script src="db.js"></script>
 <script>
-/* ============= STORAGE LAYER ============= */
-const STORAGE_KEY = 'nisaaAmal_data_v1';
-const DEFAULT_DATA = {
-  org: {
-    name: 'جمعية نساء الأمل',
-    tagline: 'دعم النساء والأطفال في مناطق النزاع',
-    address: 'عمّان — الأردن، شارع المدينة المنورة',
-    phone: '+962 79 000 0000',
-    email: 'info@nisaa-amal.org',
-    hours: 'الأحد - الخميس: 9:00 ص - 5:00 م',
-    years: '12+',
-    heroTitleA: 'معاً من أجل',
-    heroTitleHL: 'نساء وأطفال',
-    heroTitleB: 'يستحقون الأمان والكرامة',
-    heroDesc: 'جمعية خيرية نسوية تكرّس جهودها لدعم النساء والأطفال المتضررين من النزاعات في مختلف أنحاء العالم، عبر برامج إغاثة وتعليم وتمكين تعيد لهم الأمل وتبني مستقبلاً أفضل.',
-    aboutTitle: 'نسعى لعالم تعيش فيه كل امرأة وطفل بكرامة وأمان',
-    aboutP1: 'جمعية نساء الأمل منظمة خيرية مستقلة، تأسست بسواعد نسائية مؤمنة بأن العمل الإنساني هو الجسر الذي يعبر بنا نحو غدٍ أفضل. نعمل في مناطق النزاع لتقديم الدعم الفوري والمستدام للأكثر هشاشة.',
-    aboutP2: 'نلتزم بالشفافية والمحاسبة، ونعمل بالشراكة مع المجتمعات المحلية لضمان وصول الدعم إلى مستحقيه، مع احترام كامل لكرامتهم وثقافتهم.',
-    vision: 'عالم تعيش فيه كل امرأة وكل طفل بكرامة، بعيداً عن الخوف والعنف، يتمتعون بحقهم في التعليم والصحة والأمان، ويُسهمون في بناء مجتمعاتهم بثقة.',
-    mission: 'نعمل على تمكين النساء وحماية الأطفال في مناطق النزاع من خلال برامج إغاثية وتنموية مستدامة، نُقدّمها بشراكة حقيقية مع المجتمعات المحلية، مرتكزين على قيم الكرامة والعدالة والشفافية.',
-    footerDesc: 'جمعية خيرية نسوية مستقلة، نعمل من أجل دعم النساء والأطفال في مناطق النزاع وإعادة الأمل لحياتهم.'
-  },
-  stats: [
-    { icon:'women', num:'15,000+', label:'امرأة مستفيدة' },
-    { icon:'child', num:'28,000+', label:'طفلة وطفل تم دعمهم' },
-    { icon:'hand',  num:'12',      label:'منطقة عمل ميدانية' },
-    { icon:'heart', num:'350+',    label:'متطوعة ومتطوع' }
-  ],
-  programs: [
-    { icon:'aid',     title:'الإغاثة العاجلة', desc:'توفير الغذاء والمأوى والمستلزمات الأساسية للعائلات المتضررة في مناطق النزاع، مع التركيز على الفئات الأكثر هشاشة.' },
-    { icon:'edu',     title:'تعليم الأطفال',  desc:'إنشاء مساحات تعليمية آمنة في المخيمات ومناطق الطوارئ، وتوفير المعلمات والمستلزمات الدراسية للأطفال.' },
-    { icon:'health',  title:'الرعاية الصحية', desc:'توفير الرعاية الطبية للأمهات والأطفال، وحملات التوعية الصحية والدعم النفسي للنساء المتضررات.' },
-    { icon:'empower', title:'تمكين المرأة',   desc:'برامج تدريب مهني وريادة أعمال للنساء، تمكّنهن من إعالة أسرهن واستعادة استقلاليتهن الاقتصادية.' },
-    { icon:'shield',  title:'الحماية والدعم النفسي', desc:'تقديم المساندة النفسية والقانونية للنساء الناجيات من العنف، وتوفير ملاجئ آمنة عند الحاجة.' },
-    { icon:'voice',   title:'المناصرة والتوعية', desc:'الدفاع عن قضايا النساء والأطفال في مناطق النزاع عبر التقارير والحملات الإعلامية الدولية.' }
-  ],
-  news: [
-    {
-      id: 1,
-      title: 'افتتاح مركز جديد لدعم الأمهات في المخيم الشمالي',
-      category: 'أنشطة',
-      date: '2026-04-28',
-      image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&q=80',
-      excerpt: 'بدعم من شركائنا، افتتحنا هذا الأسبوع مركزاً متكاملاً يقدم خدمات الرعاية للأمهات الحوامل والمرضعات في المخيم الشمالي.',
-      content: 'في خطوة نوعية لتعزيز الدعم المقدم للأمهات في مناطق النزاع، تم افتتاح مركز جديد لدعم الأمهات في المخيم الشمالي بحضور شركاء الجمعية والشخصيات المحلية.\n\nيقدم المركز خدمات متكاملة تشمل:\n• الرعاية الصحية للأمهات الحوامل والمرضعات\n• استشارات التغذية للأطفال دون سن الخامسة\n• ورش تدريبية حول رعاية الرضع\n• الدعم النفسي والاجتماعي\n\nمن المتوقع أن يخدم المركز أكثر من 1500 أم وطفل خلال الأشهر الستة الأولى من تشغيله. يأتي هذا الافتتاح ضمن خطة الجمعية الاستراتيجية لتوسيع نطاق خدماتها في المناطق الأكثر احتياجاً.'
-    },
-    {
-      id: 2,
-      title: 'حملة "كتاب لكل طفلة" توزع 5000 حقيبة مدرسية',
-      category: 'أخبار',
-      date: '2026-04-15',
-      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
-      excerpt: 'انطلقت حملتنا السنوية "كتاب لكل طفلة" بتوزيع 5000 حقيبة مدرسية مجهزة بالكامل على الطالبات في المناطق المتضررة.',
-      content: 'في إطار التزامها بضمان حق التعليم لكل طفلة، أطلقت جمعية نساء الأمل النسخة الخامسة من حملتها السنوية "كتاب لكل طفلة"، والتي تستهدف هذا العام توزيع 5000 حقيبة مدرسية مجهزة بالكامل.\n\nتتضمن كل حقيبة:\n• الكتب والدفاتر اللازمة للعام الدراسي\n• أدوات قرطاسية متكاملة\n• زي مدرسي\n• وجبة خفيفة\n\nشاركت في الحملة فرق من المتطوعات في 8 مناطق مختلفة، وامتدت على مدى أسبوعين كاملين. عبّرت الأمهات عن امتنانهن العميق لهذه المبادرة التي خففت عنهن عبء بداية العام الدراسي.'
-    },
-    {
-      id: 3,
-      title: 'انطلاق برنامج تدريب مهني لـ 200 امرأة',
-      category: 'برامج',
-      date: '2026-03-22',
-      image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&q=80',
-      excerpt: 'بدأنا برنامجاً تدريبياً لمدة ستة أشهر يستهدف 200 امرأة من المعيلات لأسرهن في مجالات الخياطة والطبخ والحرف اليدوية.',
-      content: 'انطلق هذا الأسبوع برنامج تدريبي شامل يستهدف 200 امرأة من المعيلات لأسرهن، يهدف إلى تمكينهن اقتصادياً عبر اكتساب مهارات مهنية تساعدهن في إيجاد مصدر دخل مستدام.\n\nيتضمن البرنامج التدريب في مجالات:\n• الخياطة والتفصيل (60 امرأة)\n• الطبخ والتغذية (50 امرأة)\n• الحرف اليدوية والإكسسوارات (50 امرأة)\n• الحلاقة والتجميل (40 امرأة)\n\nيمتد البرنامج لستة أشهر، تتلقى خلالها المشاركات تدريباً نظرياً وعملياً، بالإضافة إلى محاضرات في إدارة المشاريع الصغيرة. وفي ختام البرنامج، ستحصل كل مشاركة على شهادة معتمدة وحقيبة أدوات لبدء مشروعها الخاص.'
-    }
-  ],
-  messages: []
-};
+const ICONS = NisaaDB.ICONS;
+const escapeHtml = NisaaDB.escapeHtml;
+const escapeAttr = NisaaDB.escapeAttr;
+const formatDate = NisaaDB.formatDate;
 
-function loadData(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw) return Object.assign({}, DEFAULT_DATA, JSON.parse(raw));
-  }catch{}
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
-}
-function saveData(d){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }catch{}
-}
-
-const data = loadData();
-
-/* ============= ICONS ============= */
-const ICONS = {
-  women:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5 22l2-7h10l2 7"/><path d="M9 11l-2 4M15 11l2 4"/></svg>`,
-  child:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="6" r="3"/><path d="M9 14v8M15 14v8M7 11h10l-2 6H9l-2-6z"/></svg>`,
-  hand: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6m-3-3h6"/><path d="M3 12c0-2 1-4 3-4 3 0 4 3 6 3s3-3 6-3c2 0 3 2 3 4 0 5-5 10-9 10s-9-5-9-10z"/></svg>`,
-  heart:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`,
-  aid:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L4 7v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V7l-8-5z"/><path d="M12 8v6M9 11h6"/></svg>`,
-  edu:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 4 2 10l10 6 10-6z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg>`,
-  health:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/><path d="M9 12h6M12 9v6" stroke="white" stroke-width="1.5"/></svg>`,
-  empower:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1 3-6z"/></svg>`,
-  shield:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4v6c0 5-4 9-9 10-5-1-9-5-9-10V6l9-4z"/></svg>`,
-  voice:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7v16l-9-7zM21 7v10M17 9v6"/></svg>`,
-  star: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-7z"/></svg>`,
-  book: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`,
-  globe:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>`
-};
-
-/* ============= RENDERING ============= */
-function applyOrgInfo(){
-  const o = data.org;
+async function applyOrgInfo(){
+  const o = await NisaaDB.getOrg();
   document.getElementById('org-name').textContent = o.name;
   document.getElementById('org-tagline').textContent = o.tagline;
   document.getElementById('footer-name').textContent = o.name;
@@ -914,7 +808,7 @@ function applyOrgInfo(){
   document.getElementById('footer-desc').textContent = o.footerDesc;
   document.getElementById('tb-addr').textContent = o.address;
   document.getElementById('tb-phone').textContent = o.phone;
-  document.getElementById('tb-phone').href = 'tel:' + o.phone.replace(/\s/g,'');
+  document.getElementById('tb-phone').href = 'tel:' + (o.phone||'').replace(/\s/g,'');
   document.getElementById('tb-email').textContent = o.email;
   document.getElementById('tb-email').href = 'mailto:' + o.email;
   document.getElementById('ci-addr').textContent = o.address;
@@ -933,8 +827,9 @@ function applyOrgInfo(){
   document.title = `${o.name} — ${o.tagline}`;
 }
 
-function renderStats(){
-  document.getElementById('statsStrip').innerHTML = data.stats.map(s => `
+async function renderStats(){
+  const stats = await NisaaDB.listStats();
+  document.getElementById('statsStrip').innerHTML = stats.map(s => `
     <div class="stat-item">
       <div class="stat-icon">${ICONS[s.icon]||ICONS.heart}</div>
       <div class="stat-num">${escapeHtml(s.num)}</div>
@@ -943,27 +838,29 @@ function renderStats(){
   `).join('');
 }
 
-function renderPrograms(){
-  document.getElementById('programsGrid').innerHTML = data.programs.map(p => `
+async function renderPrograms(){
+  const programs = await NisaaDB.listPrograms();
+  document.getElementById('programsGrid').innerHTML = programs.map(p => `
     <div class="program-card reveal">
       <div class="program-icon">${ICONS[p.icon]||ICONS.heart}</div>
       <h3>${escapeHtml(p.title)}</h3>
       <p>${escapeHtml(p.desc)}</p>
     </div>
   `).join('');
+  observeReveal();
 }
 
-function renderNews(){
+async function renderNews(){
   const grid = document.getElementById('newsGrid');
-  if(!data.news.length){
+  const items = await NisaaDB.listNews({ publishedOnly:true });
+  if(!items.length){
     grid.innerHTML = `<div class="empty-state">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       <p>لا توجد أخبار منشورة حالياً</p></div>`;
     return;
   }
-  const sorted = [...data.news].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  grid.innerHTML = sorted.map(n => `
-    <article class="news-card reveal" onclick="openNews(${n.id})">
+  grid.innerHTML = items.slice(0,6).map(n => `
+    <a href="news.html?id=${n.id}" class="news-card reveal" style="text-decoration:none;color:inherit;">
       <div class="news-image" style="background-image:url('${escapeAttr(n.image||'')}');">
         <span class="news-cat">${escapeHtml(n.category||'خبر')}</span>
       </div>
@@ -975,58 +872,32 @@ function renderNews(){
         <p>${escapeHtml(n.excerpt||'')}</p>
         <span class="news-link">اقرئي المزيد →</span>
       </div>
-    </article>
+    </a>
   `).join('');
   observeReveal();
 }
 
-function openNews(id){
-  const n = data.news.find(x => x.id === id);
-  if(!n) return;
-  document.getElementById('modalImage').style.backgroundImage = `url('${n.image||''}')`;
-  document.getElementById('modalMeta').innerHTML = `<span>📅 ${formatDate(n.date)}</span> · <span>🏷️ ${escapeHtml(n.category||'')}</span>`;
-  document.getElementById('modalTitle').textContent = n.title;
-  document.getElementById('modalContent').textContent = n.content || n.excerpt || '';
-  document.getElementById('newsModal').classList.add('show');
-  document.body.style.overflow = 'hidden';
-}
-function closeModal(){
-  document.getElementById('newsModal').classList.remove('show');
-  document.body.style.overflow = '';
-}
-
-function submitContact(e){
+async function submitContact(e){
   e.preventDefault();
   const f = e.target;
-  const msg = {
-    id: Date.now(),
-    name: f.name.value.trim(),
-    email: f.email.value.trim(),
-    phone: f.phone.value.trim(),
-    subject: f.subject.value,
-    message: f.message.value.trim(),
-    date: new Date().toISOString(),
-    read: false
-  };
-  data.messages.push(msg);
-  saveData(data);
   const m = document.getElementById('formMsg');
-  m.className = 'form-msg ok';
-  m.textContent = '✓ تم استلام رسالتك بنجاح! سنتواصل معك قريباً.';
-  f.reset();
-  setTimeout(() => { m.className = 'form-msg'; m.textContent = ''; }, 5000);
-}
-
-/* ============= UTILITIES ============= */
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
-function escapeAttr(s){ return escapeHtml(s).replace(/`/g,'&#96;'); }
-function formatDate(d){
-  if(!d) return '';
   try{
-    const dt = new Date(d);
-    const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-    return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
-  }catch{ return d; }
+    await NisaaDB.addMessage({
+      name: f.name.value.trim(),
+      email: f.email.value.trim(),
+      phone: f.phone.value.trim(),
+      subject: f.subject.value,
+      message: f.message.value.trim(),
+      date: new Date().toISOString()
+    });
+    m.className = 'form-msg ok';
+    m.textContent = '✓ تم استلام رسالتك بنجاح! سنتواصل معك قريباً.';
+    f.reset();
+    setTimeout(() => { m.className = 'form-msg'; m.textContent = ''; }, 5000);
+  }catch(err){
+    m.className = 'form-msg err';
+    m.textContent = 'تعذّر إرسال الرسالة. حاولي مرة أخرى.';
+  }
 }
 
 function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
@@ -1035,7 +906,6 @@ document.querySelectorAll('.nav-links a').forEach(a => {
   a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
 });
 
-/* Active nav on scroll */
 const sections = ['home','about','programs','news','contact'];
 window.addEventListener('scroll', () => {
   const y = window.scrollY + 120;
@@ -1049,7 +919,6 @@ window.addEventListener('scroll', () => {
   });
 });
 
-/* Reveal on scroll */
 function observeReveal(){
   const els = document.querySelectorAll('.reveal:not(.show)');
   const io = new IntersectionObserver((entries) => {
@@ -1058,14 +927,12 @@ function observeReveal(){
   els.forEach(el => io.observe(el));
 }
 
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
-
-/* INIT */
-applyOrgInfo();
-renderStats();
-renderPrograms();
-renderNews();
-observeReveal();
+(async function init(){
+  await NisaaDB.ready();
+  await applyOrgInfo();
+  await Promise.all([renderStats(), renderPrograms(), renderNews()]);
+  observeReveal();
+})();
 </script>
 </body>
 </html>
