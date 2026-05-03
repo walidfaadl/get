@@ -602,8 +602,18 @@
         <div class="field"><label>التاريخ</label><input type="date" id="n_date"></div>
       </div>
       <div class="field"><label>رابط الصورة (URL)</label><input type="url" id="n_image" placeholder="https://..."><div class="hint">أو يمكنك تركها فارغة</div></div>
+      <div class="field-row">
+        <div class="field"><label>الكاتب/الكاتبة</label><input type="text" id="n_author" placeholder="فريق التحرير"></div>
+        <div class="field">
+          <label>الحالة</label>
+          <select id="n_published">
+            <option value="1">منشور</option>
+            <option value="0">مسودة (غير ظاهر)</option>
+          </select>
+        </div>
+      </div>
       <div class="field"><label>المقتطف (يظهر في البطاقة)</label><textarea id="n_excerpt" rows="2"></textarea></div>
-      <div class="field"><label>المحتوى الكامل *</label><textarea id="n_content" rows="8" required></textarea></div>
+      <div class="field"><label>المحتوى الكامل *</label><textarea id="n_content" rows="8" required></textarea><div class="hint">يمكنك استخدام أسطر فارغة للفصل بين الفقرات.</div></div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-secondary" onclick="closeNewsForm()">إلغاء</button>
@@ -667,79 +677,27 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="db.js"></script>
 <script>
-/* ============= STORAGE ============= */
-const STORAGE_KEY = 'nisaaAmal_data_v1';
 const AUTH_KEY = 'nisaaAmal_auth_v1';
-const PW_KEY = 'nisaaAmal_pw_v1';
+const ICONS = NisaaDB.ICONS;
+const ICON_LABELS = NisaaDB.ICON_LABELS;
+const escapeHtml = NisaaDB.escapeHtml;
+const escapeAttr = NisaaDB.escapeAttr;
+const formatDate = NisaaDB.formatDate;
+const formatDateTime = NisaaDB.formatDateTime;
 
-const DEFAULT_DATA = {
-  org: {
-    name:'جمعية نساء الأمل', tagline:'دعم النساء والأطفال في مناطق النزاع',
-    address:'عمّان — الأردن، شارع المدينة المنورة',
-    phone:'+962 79 000 0000', email:'info@nisaa-amal.org',
-    hours:'الأحد - الخميس: 9:00 ص - 5:00 م', years:'12+',
-    heroTitleA:'معاً من أجل', heroTitleHL:'نساء وأطفال',
-    heroTitleB:'يستحقون الأمان والكرامة',
-    heroDesc:'جمعية خيرية نسوية تكرّس جهودها لدعم النساء والأطفال المتضررين من النزاعات في مختلف أنحاء العالم، عبر برامج إغاثة وتعليم وتمكين تعيد لهم الأمل وتبني مستقبلاً أفضل.',
-    aboutTitle:'نسعى لعالم تعيش فيه كل امرأة وطفل بكرامة وأمان',
-    aboutP1:'جمعية نساء الأمل منظمة خيرية مستقلة، تأسست بسواعد نسائية مؤمنة بأن العمل الإنساني هو الجسر الذي يعبر بنا نحو غدٍ أفضل. نعمل في مناطق النزاع لتقديم الدعم الفوري والمستدام للأكثر هشاشة.',
-    aboutP2:'نلتزم بالشفافية والمحاسبة، ونعمل بالشراكة مع المجتمعات المحلية لضمان وصول الدعم إلى مستحقيه، مع احترام كامل لكرامتهم وثقافتهم.',
-    vision:'عالم تعيش فيه كل امرأة وكل طفل بكرامة، بعيداً عن الخوف والعنف، يتمتعون بحقهم في التعليم والصحة والأمان، ويُسهمون في بناء مجتمعاتهم بثقة.',
-    mission:'نعمل على تمكين النساء وحماية الأطفال في مناطق النزاع من خلال برامج إغاثية وتنموية مستدامة، نُقدّمها بشراكة حقيقية مع المجتمعات المحلية، مرتكزين على قيم الكرامة والعدالة والشفافية.',
-    footerDesc:'جمعية خيرية نسوية مستقلة، نعمل من أجل دعم النساء والأطفال في مناطق النزاع وإعادة الأمل لحياتهم.'
-  },
-  stats: [
-    { icon:'women', num:'15,000+', label:'امرأة مستفيدة' },
-    { icon:'child', num:'28,000+', label:'طفلة وطفل تم دعمهم' },
-    { icon:'hand',  num:'12',      label:'منطقة عمل ميدانية' },
-    { icon:'heart', num:'350+',    label:'متطوعة ومتطوع' }
-  ],
-  programs: [],
-  news: [],
-  messages: []
-};
-
-const ICONS = {
-  women:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5 22l2-7h10l2 7"/></svg>`,
-  child:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="6" r="3"/><path d="M7 11h10l-2 6H9l-2-6z"/></svg>`,
-  hand:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12c0-2 1-4 3-4 3 0 4 3 6 3s3-3 6-3c2 0 3 2 3 4 0 5-5 10-9 10s-9-5-9-10z"/></svg>`,
-  heart:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`,
-  aid:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L4 7v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V7l-8-5z"/><path d="M12 8v6M9 11h6"/></svg>`,
-  edu:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 4 2 10l10 6 10-6z"/></svg>`,
-  health:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`,
-  empower:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1 3-6z"/></svg>`,
-  shield:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4v6c0 5-4 9-9 10-5-1-9-5-9-10V6l9-4z"/></svg>`,
-  voice:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7v16l-9-7z"/></svg>`,
-  star:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-7z"/></svg>`,
-  book:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`,
-  globe:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20"/></svg>`
-};
-const ICON_LABELS = {
-  women:'امرأة', child:'طفل', hand:'يد', heart:'قلب',
-  aid:'إغاثة', edu:'تعليم', health:'صحة', empower:'تمكين',
-  shield:'حماية', voice:'مناصرة', star:'نجمة', book:'كتاب', globe:'عالم'
-};
-
-let data = loadData();
 let editingNewsId = null;
 let editingProgramId = null;
 let viewingMsgId = null;
-
-function loadData(){
-  try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw) return Object.assign(JSON.parse(JSON.stringify(DEFAULT_DATA)), JSON.parse(raw)); }catch{}
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
-}
-function persist(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){ toast('فشل الحفظ: مساحة التخزين ممتلئة','err'); } }
+let statsBuffer = [];
 
 /* ============= AUTH ============= */
-function getPassword(){ return localStorage.getItem(PW_KEY) || 'admin123'; }
 function isAuthed(){ return sessionStorage.getItem(AUTH_KEY) === '1'; }
-
 function doLogin(e){
   e.preventDefault();
   const pw = document.getElementById('pwInput').value;
-  if(pw === getPassword()){
+  if(pw === NisaaDB.getPassword()){
     sessionStorage.setItem(AUTH_KEY,'1');
     showAdmin();
   } else {
@@ -752,9 +710,10 @@ function logout(){
   sessionStorage.removeItem(AUTH_KEY);
   location.reload();
 }
-function showAdmin(){
+async function showAdmin(){
   document.getElementById('loginWrap').style.display='none';
   document.getElementById('adminWrap').style.display='flex';
+  await NisaaDB.ready();
   initAll();
 }
 
@@ -781,18 +740,23 @@ document.getElementById('sbNav').addEventListener('click', e => {
 });
 
 /* ============= DASHBOARD ============= */
-function refreshDashboard(){
-  document.getElementById('d-news').textContent = data.news.length;
-  document.getElementById('d-programs').textContent = data.programs.length;
-  document.getElementById('d-msgs').textContent = data.messages.length;
-  document.getElementById('d-unread').textContent = data.messages.filter(m=>!m.read).length;
-  const recent = [...data.news].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,4);
-  document.getElementById('recentNews').innerHTML = recent.length ? `<div class="item-list">${recent.map(n=>renderNewsRow(n)).join('')}</div>` :
-    `<div class="empty"><p>لا توجد أخبار بعد. ابدأ بإضافة خبر جديد.</p></div>`;
-  updateUnreadBadge();
+async function refreshDashboard(){
+  const [news, programs, msgs] = await Promise.all([
+    NisaaDB.listNews(), NisaaDB.listPrograms(), NisaaDB.listMessages()
+  ]);
+  document.getElementById('d-news').textContent = news.length;
+  document.getElementById('d-programs').textContent = programs.length;
+  document.getElementById('d-msgs').textContent = msgs.length;
+  document.getElementById('d-unread').textContent = msgs.filter(m=>!m.read).length;
+  const recent = news.slice(0,4);
+  document.getElementById('recentNews').innerHTML = recent.length
+    ? `<div class="item-list">${recent.map(renderNewsRow).join('')}</div>`
+    : `<div class="empty"><p>لا توجد أخبار بعد. ابدأ بإضافة خبر جديد.</p></div>`;
+  updateUnreadBadge(msgs);
 }
-function updateUnreadBadge(){
-  const unread = data.messages.filter(m=>!m.read).length;
+function updateUnreadBadge(msgs){
+  const arr = msgs || [];
+  const unread = arr.filter(m=>!m.read).length;
   const b = document.getElementById('unreadBadge');
   if(unread>0){ b.textContent = unread; b.style.display='inline-block'; } else { b.style.display='none'; }
 }
@@ -801,6 +765,7 @@ function updateUnreadBadge(){
 function renderNewsRow(n){
   const img = n.image ? `style="background-image:url('${escapeAttr(n.image)}')"` : '';
   const placeholder = !n.image ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>` : '';
+  const status = n.published === 0 ? `<span style="color:#dc2626">⏸️ مسودة</span>` : `<span style="color:#10b981">✓ منشور</span>`;
   return `<div class="item-row">
     <div class="item-thumb" ${img}>${placeholder}</div>
     <div class="item-info">
@@ -808,22 +773,24 @@ function renderNewsRow(n){
       <div class="meta">
         <span>📅 ${formatDate(n.date)}</span>
         <span>🏷️ ${escapeHtml(n.category||'')}</span>
+        <span>${status}</span>
       </div>
     </div>
     <div class="item-actions">
+      <a class="btn btn-secondary btn-sm" href="news.html?id=${n.id}" target="_blank">👁️ معاينة</a>
       <button class="btn btn-secondary btn-sm" onclick="editNews(${n.id})">✏️ تعديل</button>
       <button class="btn btn-danger btn-sm" onclick="deleteNews(${n.id})">🗑️</button>
     </div>
   </div>`;
 }
-function renderNewsList(){
+async function renderNewsList(){
   const list = document.getElementById('newsList');
-  if(!data.news.length){
+  const news = await NisaaDB.listNews();
+  if(!news.length){
     list.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg><p>لا توجد أخبار بعد</p></div>`;
     return;
   }
-  const sorted = [...data.news].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  list.innerHTML = sorted.map(renderNewsRow).join('');
+  list.innerHTML = news.map(renderNewsRow).join('');
 }
 function openNewsForm(){
   editingNewsId = null;
@@ -834,10 +801,12 @@ function openNewsForm(){
   document.getElementById('n_image').value = '';
   document.getElementById('n_excerpt').value = '';
   document.getElementById('n_content').value = '';
+  document.getElementById('n_author').value = 'فريق التحرير';
+  document.getElementById('n_published').value = '1';
   document.getElementById('newsModal').classList.add('show');
 }
-function editNews(id){
-  const n = data.news.find(x=>x.id===id); if(!n) return;
+async function editNews(id){
+  const n = await NisaaDB.getNews(id); if(!n) return;
   editingNewsId = id;
   document.getElementById('newsModalTitle').textContent = 'تعديل الخبر';
   document.getElementById('n_title').value = n.title || '';
@@ -846,44 +815,46 @@ function editNews(id){
   document.getElementById('n_image').value = n.image || '';
   document.getElementById('n_excerpt').value = n.excerpt || '';
   document.getElementById('n_content').value = n.content || '';
+  document.getElementById('n_author').value = n.author || '';
+  document.getElementById('n_published').value = String(n.published ?? 1);
   document.getElementById('newsModal').classList.add('show');
 }
 function closeNewsForm(){ document.getElementById('newsModal').classList.remove('show'); }
-function saveNews(){
+async function saveNews(){
   const title = document.getElementById('n_title').value.trim();
   const content = document.getElementById('n_content').value.trim();
   if(!title || !content){ toast('العنوان والمحتوى مطلوبان','err'); return; }
   const item = {
-    id: editingNewsId || Date.now(),
     title,
     category: document.getElementById('n_category').value,
     date: document.getElementById('n_date').value || new Date().toISOString().slice(0,10),
     image: document.getElementById('n_image').value.trim(),
     excerpt: document.getElementById('n_excerpt').value.trim() || content.slice(0,160),
-    content
+    content,
+    author: document.getElementById('n_author').value.trim(),
+    published: parseInt(document.getElementById('n_published').value, 10)
   };
-  if(editingNewsId){
-    const i = data.news.findIndex(x=>x.id===editingNewsId);
-    if(i>=0) data.news[i] = item;
-  } else { data.news.push(item); }
-  persist(); closeNewsForm(); renderNewsList(); refreshDashboard();
+  if(editingNewsId) item.id = editingNewsId;
+  await NisaaDB.saveNews(item);
+  closeNewsForm(); renderNewsList(); refreshDashboard();
   toast('✓ تم الحفظ بنجاح','ok');
 }
-function deleteNews(id){
+async function deleteNews(id){
   if(!confirm('هل أنت متأكدة من حذف هذا الخبر؟')) return;
-  data.news = data.news.filter(x=>x.id!==id);
-  persist(); renderNewsList(); refreshDashboard();
+  await NisaaDB.deleteNews(id);
+  renderNewsList(); refreshDashboard();
   toast('تم الحذف','ok');
 }
 
 /* ============= PROGRAMS ============= */
-function renderProgramsList(){
+async function renderProgramsList(){
   const list = document.getElementById('programsList');
-  if(!data.programs.length){
+  const programs = await NisaaDB.listPrograms();
+  if(!programs.length){
     list.innerHTML = `<div class="empty"><p>لا توجد برامج بعد</p></div>`;
     return;
   }
-  list.innerHTML = data.programs.map((p,i) => `
+  list.innerHTML = programs.map(p => `
     <div class="item-row">
       <div class="item-thumb">${ICONS[p.icon]||ICONS.heart}</div>
       <div class="item-info">
@@ -891,8 +862,8 @@ function renderProgramsList(){
         <div class="meta"><span style="color:var(--slate)">${escapeHtml(p.desc.slice(0,100))}${p.desc.length>100?'…':''}</span></div>
       </div>
       <div class="item-actions">
-        <button class="btn btn-secondary btn-sm" onclick="editProgram(${i})">✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteProgram(${i})">🗑️</button>
+        <button class="btn btn-secondary btn-sm" onclick="editProgram(${p.id})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProgram(${p.id})">🗑️</button>
       </div>
     </div>
   `).join('');
@@ -905,9 +876,10 @@ function openProgramForm(){
   document.getElementById('p_desc').value = '';
   document.getElementById('programModal').classList.add('show');
 }
-function editProgram(i){
-  const p = data.programs[i]; if(!p) return;
-  editingProgramId = i;
+async function editProgram(id){
+  const programs = await NisaaDB.listPrograms();
+  const p = programs.find(x => x.id === id); if(!p) return;
+  editingProgramId = id;
   document.getElementById('programModalTitle').textContent = 'تعديل البرنامج';
   document.getElementById('p_title').value = p.title;
   document.getElementById('p_icon').value = p.icon;
@@ -915,19 +887,23 @@ function editProgram(i){
   document.getElementById('programModal').classList.add('show');
 }
 function closeProgramForm(){ document.getElementById('programModal').classList.remove('show'); }
-function saveProgram(){
+async function saveProgram(){
   const title = document.getElementById('p_title').value.trim();
   const desc = document.getElementById('p_desc').value.trim();
   if(!title || !desc){ toast('العنوان والوصف مطلوبان','err'); return; }
-  const item = { title, desc, icon: document.getElementById('p_icon').value };
-  if(editingProgramId !== null){ data.programs[editingProgramId] = item; }
-  else { data.programs.push(item); }
-  persist(); closeProgramForm(); renderProgramsList(); refreshDashboard();
+  const programs = await NisaaDB.listPrograms();
+  const item = { title, desc, icon: document.getElementById('p_icon').value, order: programs.length+1 };
+  if(editingProgramId !== null){
+    const cur = programs.find(x => x.id === editingProgramId);
+    if(cur){ item.id = editingProgramId; item.order = cur.order; }
+  }
+  await NisaaDB.saveProgram(item);
+  closeProgramForm(); renderProgramsList(); refreshDashboard();
   toast('✓ تم الحفظ','ok');
 }
-function deleteProgram(i){
+async function deleteProgram(id){
   if(!confirm('حذف هذا البرنامج؟')) return;
-  data.programs.splice(i,1); persist(); renderProgramsList();
+  await NisaaDB.deleteProgram(id); renderProgramsList();
   toast('تم الحذف','ok');
 }
 
@@ -939,8 +915,8 @@ function aboutTab(name, btn){
     document.getElementById('aboutTab-'+t).style.display = (t===name?'block':'none');
   });
 }
-function loadAboutForm(){
-  const o = data.org;
+async function loadAboutForm(){
+  const o = await NisaaDB.getOrg();
   document.getElementById('ab_heroA').value = o.heroTitleA;
   document.getElementById('ab_heroHL').value = o.heroTitleHL;
   document.getElementById('ab_heroB').value = o.heroTitleB;
@@ -953,51 +929,60 @@ function loadAboutForm(){
   document.getElementById('ab_mission').value = o.mission;
   document.getElementById('ab_footerDesc').value = o.footerDesc;
 }
-function saveAbout(){
-  const o = data.org;
-  o.heroTitleA = document.getElementById('ab_heroA').value;
-  o.heroTitleHL = document.getElementById('ab_heroHL').value;
-  o.heroTitleB = document.getElementById('ab_heroB').value;
-  o.heroDesc = document.getElementById('ab_heroDesc').value;
-  o.aboutTitle = document.getElementById('ab_aboutTitle').value;
-  o.aboutP1 = document.getElementById('ab_aboutP1').value;
-  o.aboutP2 = document.getElementById('ab_aboutP2').value;
-  o.years = document.getElementById('ab_years').value;
-  o.vision = document.getElementById('ab_vision').value;
-  o.mission = document.getElementById('ab_mission').value;
-  o.footerDesc = document.getElementById('ab_footerDesc').value;
-  persist(); toast('✓ تم حفظ التغييرات','ok');
+async function saveAbout(){
+  await NisaaDB.setOrg({
+    heroTitleA: document.getElementById('ab_heroA').value,
+    heroTitleHL: document.getElementById('ab_heroHL').value,
+    heroTitleB: document.getElementById('ab_heroB').value,
+    heroDesc: document.getElementById('ab_heroDesc').value,
+    aboutTitle: document.getElementById('ab_aboutTitle').value,
+    aboutP1: document.getElementById('ab_aboutP1').value,
+    aboutP2: document.getElementById('ab_aboutP2').value,
+    years: document.getElementById('ab_years').value,
+    vision: document.getElementById('ab_vision').value,
+    mission: document.getElementById('ab_mission').value,
+    footerDesc: document.getElementById('ab_footerDesc').value
+  });
+  toast('✓ تم حفظ التغييرات','ok');
 }
 
 /* ============= STATS ============= */
-function renderStatsEditor(){
+async function renderStatsEditor(){
+  statsBuffer = await NisaaDB.listStats();
+  drawStatsEditor();
+}
+function drawStatsEditor(){
   const list = document.getElementById('statsEditList');
-  list.innerHTML = data.stats.map((s,i) => `
+  list.innerHTML = statsBuffer.map((s,i) => `
     <div class="stat-edit-row">
-      <select onchange="data.stats[${i}].icon=this.value">
+      <select onchange="statsBuffer[${i}].icon=this.value">
         ${Object.keys(ICON_LABELS).map(k => `<option value="${k}" ${s.icon===k?'selected':''}>${ICON_LABELS[k]}</option>`).join('')}
       </select>
-      <input type="text" placeholder="الرقم" value="${escapeAttr(s.num)}" oninput="data.stats[${i}].num=this.value">
-      <input type="text" placeholder="الوصف" value="${escapeAttr(s.label)}" oninput="data.stats[${i}].label=this.value">
+      <input type="text" placeholder="الرقم" value="${escapeAttr(s.num)}" oninput="statsBuffer[${i}].num=this.value">
+      <input type="text" placeholder="الوصف" value="${escapeAttr(s.label)}" oninput="statsBuffer[${i}].label=this.value">
       <button class="icon-btn del" onclick="removeStat(${i})">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/></svg>
       </button>
     </div>
   `).join('');
 }
-function addStat(){ data.stats.push({icon:'heart', num:'0+', label:'وصف جديد'}); renderStatsEditor(); }
-function removeStat(i){ data.stats.splice(i,1); renderStatsEditor(); }
-function saveStats(){ persist(); toast('✓ تم حفظ الإحصائيات','ok'); }
+function addStat(){ statsBuffer.push({icon:'heart', num:'0+', label:'وصف جديد'}); drawStatsEditor(); }
+function removeStat(i){ statsBuffer.splice(i,1); drawStatsEditor(); }
+async function saveStats(){
+  await NisaaDB.replaceStats(statsBuffer.map(s => ({ icon:s.icon, num:s.num, label:s.label })));
+  toast('✓ تم حفظ الإحصائيات','ok');
+}
 
 /* ============= MESSAGES ============= */
-function renderMessages(){
+async function renderMessages(){
   const list = document.getElementById('messagesList');
-  if(!data.messages.length){
+  const msgs = await NisaaDB.listMessages();
+  if(!msgs.length){
     list.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><p>لا توجد رسائل</p></div>`;
+    updateUnreadBadge(msgs);
     return;
   }
-  const sorted = [...data.messages].sort((a,b)=>(b.id||0)-(a.id||0));
-  list.innerHTML = sorted.map(m => `
+  list.innerHTML = msgs.map(m => `
     <div class="msg-row ${m.read?'':'unread'}" onclick="viewMessage(${m.id})">
       <div class="msg-head">
         <div class="msg-name">${m.read?'':'<span class="dot"></span>'}${escapeHtml(m.name)}</div>
@@ -1007,12 +992,13 @@ function renderMessages(){
       <div class="msg-body">${escapeHtml(m.message)}</div>
     </div>
   `).join('');
-  updateUnreadBadge();
+  updateUnreadBadge(msgs);
 }
-function viewMessage(id){
-  const m = data.messages.find(x=>x.id===id); if(!m) return;
+async function viewMessage(id){
+  const msgs = await NisaaDB.listMessages();
+  const m = msgs.find(x=>x.id===id); if(!m) return;
   viewingMsgId = id;
-  if(!m.read){ m.read=true; persist(); }
+  if(!m.read){ await NisaaDB.markMessage(id, true); }
   document.getElementById('msgViewBody').innerHTML = `
     <div class="field"><label>المرسل</label><div style="padding:10px 14px;background:var(--cream);border-radius:8px;">${escapeHtml(m.name)}</div></div>
     <div class="field-row">
@@ -1026,23 +1012,22 @@ function viewMessage(id){
   document.getElementById('msgViewModal').classList.add('show');
   renderMessages();
 }
-function deleteCurrentMsg(){
+async function deleteCurrentMsg(){
   if(!viewingMsgId) return;
   if(!confirm('حذف الرسالة؟')) return;
-  data.messages = data.messages.filter(m=>m.id!==viewingMsgId);
-  persist();
+  await NisaaDB.deleteMessage(viewingMsgId);
   document.getElementById('msgViewModal').classList.remove('show');
   renderMessages(); refreshDashboard();
   toast('تم الحذف','ok');
 }
-function markAllRead(){
-  data.messages.forEach(m=>m.read=true); persist(); renderMessages(); refreshDashboard();
+async function markAllRead(){
+  await NisaaDB.markAllRead(); renderMessages(); refreshDashboard();
   toast('تم تعليم الكل كمقروء','ok');
 }
 
 /* ============= SETTINGS ============= */
-function loadSettingsForm(){
-  const o = data.org;
+async function loadSettingsForm(){
+  const o = await NisaaDB.getOrg();
   document.getElementById('st_name').value = o.name;
   document.getElementById('st_tagline').value = o.tagline;
   document.getElementById('st_address').value = o.address;
@@ -1050,15 +1035,16 @@ function loadSettingsForm(){
   document.getElementById('st_email').value = o.email;
   document.getElementById('st_hours').value = o.hours;
 }
-function saveSettings(){
-  const o = data.org;
-  o.name = document.getElementById('st_name').value.trim() || o.name;
-  o.tagline = document.getElementById('st_tagline').value.trim();
-  o.address = document.getElementById('st_address').value.trim();
-  o.phone = document.getElementById('st_phone').value.trim();
-  o.email = document.getElementById('st_email').value.trim();
-  o.hours = document.getElementById('st_hours').value.trim();
-  persist(); toast('✓ تم حفظ المعلومات','ok');
+async function saveSettings(){
+  await NisaaDB.setOrg({
+    name: document.getElementById('st_name').value.trim() || 'جمعية نساء الأمل',
+    tagline: document.getElementById('st_tagline').value.trim(),
+    address: document.getElementById('st_address').value.trim(),
+    phone: document.getElementById('st_phone').value.trim(),
+    email: document.getElementById('st_email').value.trim(),
+    hours: document.getElementById('st_hours').value.trim()
+  });
+  toast('✓ تم حفظ المعلومات','ok');
 }
 function changePassword(){
   const pw = document.getElementById('st_pw').value;
@@ -1066,13 +1052,14 @@ function changePassword(){
   if(!pw){ toast('أدخلي كلمة المرور الجديدة','err'); return; }
   if(pw.length < 6){ toast('كلمة المرور يجب أن تكون 6 أحرف على الأقل','err'); return; }
   if(pw !== pw2){ toast('كلمتا المرور غير متطابقتين','err'); return; }
-  localStorage.setItem(PW_KEY, pw);
+  NisaaDB.setPassword(pw);
   document.getElementById('st_pw').value = '';
   document.getElementById('st_pw2').value = '';
   toast('✓ تم تغيير كلمة المرور','ok');
 }
-function exportData(){
-  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+async function exportData(){
+  const all = await NisaaDB.exportAll();
+  const blob = new Blob([JSON.stringify(all,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `nisaa-amal-backup-${new Date().toISOString().slice(0,10)}.json`;
@@ -1082,49 +1069,25 @@ function exportData(){
 function importData(e){
   const f = e.target.files[0]; if(!f) return;
   const reader = new FileReader();
-  reader.onload = ev => {
+  reader.onload = async ev => {
     try{
       const imported = JSON.parse(ev.target.result);
-      if(!confirm('سيتم استبدال جميع البيانات الحالية. متابعة؟')) return;
-      data = Object.assign(JSON.parse(JSON.stringify(DEFAULT_DATA)), imported);
-      persist(); initAll();
+      if(!confirm('سيتم استبدال جميع البيانات الحالية. متابعة؟')){ e.target.value = ''; return; }
+      await NisaaDB.importAll(imported); initAll();
       toast('✓ تم الاستيراد بنجاح','ok');
     }catch{ toast('ملف غير صالح','err'); }
   };
   reader.readAsText(f);
   e.target.value = '';
 }
-function resetData(){
+async function resetData(){
   if(!confirm('سيتم حذف جميع البيانات وإرجاع الإعدادات للوضع الافتراضي. متابعة؟')) return;
   if(!confirm('هل أنت متأكدة تماماً؟')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  data = JSON.parse(JSON.stringify(DEFAULT_DATA));
-  persist(); initAll();
+  await NisaaDB.resetAll(); initAll();
   toast('تم استعادة الإعدادات الافتراضية','ok');
 }
 
 /* ============= UTILS ============= */
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
-function escapeAttr(s){ return escapeHtml(s).replace(/`/g,'&#96;'); }
-function formatDate(d){
-  if(!d) return '—';
-  try{
-    const dt = new Date(d);
-    const m = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-    return `${dt.getDate()} ${m[dt.getMonth()]} ${dt.getFullYear()}`;
-  }catch{ return d; }
-}
-function formatDateTime(d){
-  if(!d) return '—';
-  try{
-    const dt = new Date(d);
-    const day = String(dt.getDate()).padStart(2,'0');
-    const mo = String(dt.getMonth()+1).padStart(2,'0');
-    const h = String(dt.getHours()).padStart(2,'0');
-    const mi = String(dt.getMinutes()).padStart(2,'0');
-    return `${dt.getFullYear()}-${mo}-${day} ${h}:${mi}`;
-  }catch{ return d; }
-}
 function toast(msg, type){
   const t = document.getElementById('toast');
   t.className = 'toast ' + (type||'');
@@ -1141,17 +1104,16 @@ function initAll(){
   renderStatsEditor();
   renderMessages();
   loadSettingsForm();
-  updateUnreadBadge();
 }
 
 /* INIT */
 if(isAuthed()) showAdmin();
-
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape'){
     document.querySelectorAll('.modal-bg.show').forEach(m=>m.classList.remove('show'));
   }
 });
 </script>
+
 </body>
 </html>
