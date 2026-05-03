@@ -1,433 +1,1071 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>رصد الإعلام التركي</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<title>جمعية نساء الأمل — دعم النساء والأطفال في مناطق النزاع</title>
+<meta name="description" content="جمعية خيرية نسوية تُعنى بدعم النساء والأطفال في مناطق النزاع عبر برامج الإغاثة والتعليم والصحة والتمكين.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0a0c0f;--surface:#12151a;--surface2:#1a1f28;--border:#252c38;--accent:#e8a020;--text:#e2e8f0;--muted:#64748b;--green:#10b981;}
+  :root{
+    --burgundy:#8b1e3f;
+    --burgundy-dark:#6a1530;
+    --burgundy-light:#b54a6a;
+    --rose:#f4c2c9;
+    --rose-soft:#fce8eb;
+    --cream:#faf5ee;
+    --cream-warm:#f5ebd9;
+    --gold:#c9962e;
+    --gold-light:#e0b955;
+    --navy:#1f2937;
+    --slate:#475569;
+    --muted:#7a8597;
+    --line:#ead7c8;
+    --white:#ffffff;
+    --shadow-sm:0 2px 8px rgba(31,41,55,.06);
+    --shadow-md:0 8px 28px rgba(139,30,63,.12);
+    --shadow-lg:0 20px 60px rgba(139,30,63,.18);
+  }
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;direction:rtl;min-height:100vh;}
-  .header{background:linear-gradient(135deg,#0a0c0f,#1a1228,#0a0c0f);border-bottom:1px solid var(--border);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;}
-  .htitle{font-size:18px;font-weight:700;}.hsub{font-size:12px;color:var(--muted);margin-top:3px;}
-  .dot{width:10px;height:10px;background:var(--accent);border-radius:50%;box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;margin-left:10px;flex-shrink:0;}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-  .badge{background:rgba(232,160,32,.1);border:1px solid rgba(232,160,32,.3);color:var(--accent);padding:5px 12px;border-radius:20px;font-size:11px;}
-  .wrap{max-width:1000px;margin:0 auto;padding:24px 16px;}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px;}
-  label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500;}
-  input,select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;outline:none;transition:.2s;}
-  input:focus,select:focus{border-color:var(--accent);}
-  select option{background:var(--surface2);}
-  .grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
-  .kw-wrap{border-top:1px solid var(--border);padding-top:14px;margin-top:14px;}
-  .kw-lbl{font-size:11px;color:var(--muted);margin-bottom:10px;}
-  .kw-flex{display:flex;flex-wrap:wrap;gap:8px;}
-  .kw{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-size:12px;cursor:pointer;color:var(--muted);transition:.2s;direction:ltr;}
-  .kw.on{background:rgba(232,160,32,.12);border-color:var(--accent);color:var(--accent);}
-  .btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;padding:12px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;transition:.2s;}
-  .btn:hover:not(:disabled){background:#f0b030;}.btn:disabled{opacity:.5;cursor:not-allowed;}
-  .status{border-radius:10px;padding:12px 16px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:16px;border:1px solid var(--border);background:var(--surface);}
-  .status.ok{border-color:rgba(16,185,129,.4);color:var(--green);}.status.err{border-color:rgba(192,57,43,.5);color:#e74c3c;}.status.load{border-color:rgba(232,160,32,.4);}
-  .spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-  .sc2{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
-  .sv{font-size:26px;font-weight:900;color:var(--accent);line-height:1.2;margin-bottom:4px;}.sl{font-size:11px;color:var(--muted);}
-  .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
-  .ctitle{font-size:13px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-  .ctitle::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px;flex-shrink:0;}
-  .brow{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-  .blbl{font-size:11px;color:var(--muted);width:90px;text-align:left;flex-shrink:0;direction:ltr;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-  .btrack{flex:1;background:var(--surface2);border-radius:3px;height:22px;overflow:hidden;}
-  .bfill{height:100%;border-radius:3px;transition:width .7s ease;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;color:#000;justify-content:flex-end;}
-  .bcnt{font-size:11px;color:var(--muted);width:32px;text-align:right;flex-shrink:0;}
-  .trow{margin-bottom:12px;}.th{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
-  .tt{color:var(--text);}.tp2{color:var(--muted);font-size:11px;}
-  .ttrack{background:var(--surface2);border-radius:3px;height:8px;overflow:hidden;}
-  .tfill{height:100%;border-radius:3px;transition:width .9s ease;}
-  .analysis-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px;}
-  .analysis-text{font-size:14px;line-height:2;color:var(--text);}
-  .cursor{display:inline-block;width:2px;height:16px;background:var(--accent);animation:blink .7s infinite;vertical-align:middle;}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-  .articles-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
-  .ah{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-  .aht{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
-  .aht::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px;}
-  .cbadge{background:rgba(232,160,32,.12);color:var(--accent);padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600;}
-  .aitem{padding:14px 20px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;text-decoration:none;color:inherit;transition:.15s;}
-  .aitem:last-child{border-bottom:none;}.aitem:hover{background:var(--surface2);}
-  .atitle{font-size:13px;color:var(--text);margin-bottom:5px;line-height:1.5;direction:ltr;text-align:left;}
-  .ameta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-  .asrc{font-size:11px;color:var(--accent);font-weight:500;}.adate{font-size:10px;color:var(--muted);}
-  .tpill{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:500;}
-  .tn{background:rgba(192,57,43,.15);color:#e74c3c;}.tpos{background:rgba(16,185,129,.15);color:var(--green);}.tnu{background:rgba(100,116,139,.15);color:var(--muted);}
-  .ascore{text-align:center;flex-shrink:0;}.asv{font-size:18px;font-weight:900;line-height:1;}.asl{font-size:9px;color:var(--muted);}
-  .monthly-chart{display:flex;align-items:flex-end;gap:4px;height:80px;margin-top:8px;}
-  .month-bar{flex:1;background:var(--accent);border-radius:3px 3px 0 0;opacity:.8;transition:height .5s ease;position:relative;min-width:20px;}
-  .month-bar:hover{opacity:1;}
-  .month-label{font-size:9px;color:var(--muted);text-align:center;margin-top:4px;}
-  .month-wrap{flex:1;display:flex;flex-direction:column;align-items:center;}
-  .empty{text-align:center;padding:60px 20px;color:var(--muted);}
-  .ei{font-size:40px;margin-bottom:12px;}.et{font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px;}.ed{font-size:13px;line-height:1.6;}
-  .fnote{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:11px;color:var(--muted);line-height:1.7;}
-  .tab-bar{display:flex;gap:8px;margin-bottom:20px;}
-  .tab{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:12px;cursor:pointer;color:var(--muted);transition:.2s;font-family:'Tajawal',sans-serif;}
-  .tab.on{background:rgba(232,160,32,.12);border-color:var(--accent);color:var(--accent);}
-  .hidden{display:none!important;}
-  @media(max-width:600px){.grid4{grid-template-columns:1fr 1fr;}.stats4{grid-template-columns:1fr 1fr;}.g2{grid-template-columns:1fr;}}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--cream);
+    color:var(--navy);
+    font-family:'Tajawal',sans-serif;
+    direction:rtl;
+    line-height:1.7;
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none;}
+  img{max-width:100%;display:block;}
+
+  /* ===== Top Bar ===== */
+  .topbar{background:var(--burgundy-dark);color:#f5d6dd;font-size:13px;padding:8px 0;}
+  .topbar-inner{max-width:1240px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .topbar a{color:#f5d6dd;transition:.2s;}
+  .topbar a:hover{color:var(--gold-light);}
+  .topbar-info{display:flex;gap:18px;flex-wrap:wrap;}
+  .topbar-info span{display:inline-flex;align-items:center;gap:6px;}
+  .topbar-social{display:flex;gap:14px;}
+
+  /* ===== Header / Nav ===== */
+  .header{
+    background:var(--white);
+    box-shadow:var(--shadow-sm);
+    position:sticky;top:0;z-index:100;
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    max-width:1240px;margin:0 auto;
+    padding:14px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+  }
+  .logo{display:flex;align-items:center;gap:14px;}
+  .logo-icon{
+    width:54px;height:54px;border-radius:50%;
+    background:linear-gradient(135deg,var(--burgundy),var(--burgundy-light));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--shadow-md);
+    flex-shrink:0;
+  }
+  .logo-icon svg{width:30px;height:30px;color:var(--cream);}
+  .logo-text h1{font-size:20px;font-weight:900;color:var(--burgundy);line-height:1.1;font-family:'Amiri',serif;}
+  .logo-text p{font-size:11.5px;color:var(--muted);margin-top:3px;}
+
+  .nav-links{display:flex;gap:6px;align-items:center;}
+  .nav-links a{
+    padding:10px 16px;border-radius:8px;
+    font-weight:500;font-size:14.5px;
+    color:var(--navy);transition:.2s;position:relative;
+  }
+  .nav-links a:hover{color:var(--burgundy);background:var(--rose-soft);}
+  .nav-links a.active{color:var(--burgundy);background:var(--rose-soft);}
+
+  .donate-btn{
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    color:var(--navy)!important;
+    padding:11px 22px!important;
+    border-radius:30px!important;
+    font-weight:700!important;
+    box-shadow:0 4px 14px rgba(201,150,46,.35);
+    transition:.2s;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .donate-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,150,46,.5);background:linear-gradient(135deg,var(--gold-light),var(--gold))!important;}
+
+  .menu-toggle{display:none;background:none;border:none;cursor:pointer;padding:6px;color:var(--burgundy);}
+
+  /* ===== Hero ===== */
+  .hero{
+    position:relative;
+    background:
+      linear-gradient(135deg,rgba(139,30,63,.85),rgba(106,21,48,.78)),
+      url('https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1600&q=80') center/cover;
+    color:var(--white);
+    padding:110px 24px 130px;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(circle at 20% 30%,rgba(201,150,46,.18),transparent 50%);
+    pointer-events:none;
+  }
+  .hero-inner{max-width:1100px;margin:0 auto;text-align:center;position:relative;z-index:2;}
+  .hero-badge{
+    display:inline-block;
+    background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.3);
+    backdrop-filter:blur(10px);
+    padding:8px 20px;border-radius:30px;
+    font-size:13px;margin-bottom:24px;letter-spacing:.5px;
+  }
+  .hero h2{
+    font-family:'Amiri',serif;
+    font-size:54px;font-weight:700;line-height:1.25;
+    margin-bottom:22px;
+    text-shadow:0 4px 20px rgba(0,0,0,.3);
+  }
+  .hero h2 span{color:var(--gold-light);}
+  .hero p{font-size:18.5px;max-width:760px;margin:0 auto 38px;opacity:.95;line-height:1.9;}
+  .hero-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+  .btn-primary{
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    color:var(--navy);padding:15px 34px;border-radius:30px;
+    font-weight:700;font-size:15px;border:none;cursor:pointer;
+    box-shadow:0 6px 20px rgba(201,150,46,.4);
+    transition:.25s;display:inline-flex;align-items:center;gap:8px;font-family:inherit;
+  }
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(201,150,46,.55);}
+  .btn-outline{
+    background:transparent;color:var(--white);
+    border:2px solid rgba(255,255,255,.5);
+    padding:13px 32px;border-radius:30px;
+    font-weight:600;font-size:15px;cursor:pointer;
+    transition:.25s;font-family:inherit;
+  }
+  .btn-outline:hover{background:var(--white);color:var(--burgundy);border-color:var(--white);}
+
+  .hero-wave{
+    position:absolute;bottom:-1px;left:0;right:0;line-height:0;
+  }
+  .hero-wave svg{width:100%;height:80px;}
+
+  /* ===== Stats Strip ===== */
+  .stats-strip{
+    background:var(--white);
+    margin:-60px auto 0;
+    max-width:1100px;
+    border-radius:18px;
+    box-shadow:var(--shadow-lg);
+    padding:36px 24px;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:18px;
+    position:relative;z-index:5;
+  }
+  .stat-item{text-align:center;padding:0 12px;border-left:1px solid var(--line);}
+  .stat-item:first-child{border-left:none;}
+  .stat-icon{
+    width:50px;height:50px;border-radius:14px;
+    background:var(--rose-soft);color:var(--burgundy);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 12px;
+  }
+  .stat-icon svg{width:26px;height:26px;}
+  .stat-num{font-size:36px;font-weight:900;color:var(--burgundy);line-height:1;}
+  .stat-num span{color:var(--gold);}
+  .stat-label{font-size:13.5px;color:var(--slate);margin-top:6px;font-weight:500;}
+
+  /* ===== Sections ===== */
+  section{padding:80px 24px;}
+  .container{max-width:1240px;margin:0 auto;}
+  .section-head{text-align:center;margin-bottom:54px;}
+  .section-tag{
+    display:inline-block;color:var(--burgundy);font-size:13px;
+    font-weight:700;letter-spacing:2px;text-transform:uppercase;
+    margin-bottom:12px;
+  }
+  .section-tag::before,.section-tag::after{
+    content:'';display:inline-block;width:30px;height:1px;
+    background:var(--burgundy);vertical-align:middle;margin:0 10px;
+  }
+  .section-title{
+    font-family:'Amiri',serif;
+    font-size:40px;font-weight:700;color:var(--navy);
+    margin-bottom:14px;line-height:1.3;
+  }
+  .section-sub{font-size:16px;color:var(--slate);max-width:680px;margin:0 auto;}
+
+  /* ===== About ===== */
+  .about{background:var(--white);}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+  .about-image{
+    position:relative;border-radius:20px;overflow:hidden;
+    box-shadow:var(--shadow-lg);
+    aspect-ratio:4/5;
+    background:linear-gradient(135deg,var(--rose),var(--burgundy-light));
+  }
+  .about-image img{width:100%;height:100%;object-fit:cover;}
+  .about-image-badge{
+    position:absolute;bottom:24px;right:24px;
+    background:var(--white);padding:18px 24px;border-radius:14px;
+    box-shadow:var(--shadow-md);
+    display:flex;align-items:center;gap:14px;
+  }
+  .about-image-badge .y{font-family:'Amiri',serif;font-size:38px;font-weight:700;color:var(--burgundy);line-height:1;}
+  .about-image-badge .t{font-size:13px;color:var(--slate);max-width:120px;line-height:1.4;}
+
+  .about-content .section-tag{margin-bottom:14px;}
+  .about-content .section-tag::before{display:none;}
+  .about-content .section-tag::after{display:none;}
+  .about-content h3{
+    font-family:'Amiri',serif;font-size:36px;color:var(--navy);
+    margin-bottom:20px;line-height:1.3;
+  }
+  .about-content p{color:var(--slate);font-size:15.5px;margin-bottom:16px;line-height:1.9;}
+  .about-features{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .about-feature{display:flex;gap:12px;align-items:flex-start;}
+  .feat-icon{
+    width:40px;height:40px;border-radius:50%;flex-shrink:0;
+    background:var(--rose-soft);color:var(--burgundy);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .feat-icon svg{width:20px;height:20px;}
+  .feat-text h4{font-size:15px;color:var(--navy);margin-bottom:2px;font-weight:700;}
+  .feat-text p{font-size:13px;color:var(--muted);margin:0;line-height:1.5;}
+
+  /* ===== Programs ===== */
+  .programs{background:linear-gradient(180deg,var(--cream),var(--cream-warm));}
+  .programs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;}
+  .program-card{
+    background:var(--white);border-radius:18px;padding:34px 28px;
+    box-shadow:var(--shadow-sm);
+    transition:.3s;border:1px solid transparent;
+    position:relative;overflow:hidden;
+  }
+  .program-card::before{
+    content:'';position:absolute;top:0;right:0;width:100%;height:4px;
+    background:linear-gradient(90deg,var(--burgundy),var(--gold));
+    transform:scaleX(0);transform-origin:right;transition:.4s;
+  }
+  .program-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:var(--rose);}
+  .program-card:hover::before{transform:scaleX(1);}
+  .program-icon{
+    width:70px;height:70px;border-radius:18px;
+    background:linear-gradient(135deg,var(--rose-soft),var(--rose));
+    color:var(--burgundy);
+    display:flex;align-items:center;justify-content:center;margin-bottom:22px;
+    transition:.3s;
+  }
+  .program-card:hover .program-icon{
+    background:linear-gradient(135deg,var(--burgundy),var(--burgundy-light));
+    color:var(--white);transform:rotate(-8deg) scale(1.05);
+  }
+  .program-icon svg{width:36px;height:36px;}
+  .program-card h3{font-size:21px;color:var(--navy);margin-bottom:12px;font-weight:700;}
+  .program-card p{color:var(--slate);font-size:14.5px;line-height:1.8;}
+
+  /* ===== News ===== */
+  .news{background:var(--white);}
+  .news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+  .news-card{
+    background:var(--white);border-radius:16px;overflow:hidden;
+    box-shadow:var(--shadow-sm);transition:.3s;
+    border:1px solid var(--line);
+    display:flex;flex-direction:column;
+  }
+  .news-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-md);}
+  .news-image{
+    height:220px;background:linear-gradient(135deg,var(--rose),var(--burgundy-light));
+    background-size:cover;background-position:center;
+    position:relative;
+  }
+  .news-cat{
+    position:absolute;top:14px;right:14px;
+    background:var(--burgundy);color:var(--white);
+    padding:5px 14px;border-radius:30px;font-size:12px;font-weight:600;
+  }
+  .news-body{padding:22px 22px 24px;flex:1;display:flex;flex-direction:column;}
+  .news-meta{display:flex;align-items:center;gap:16px;color:var(--muted);font-size:12.5px;margin-bottom:12px;}
+  .news-meta span{display:inline-flex;align-items:center;gap:5px;}
+  .news-card h3{font-size:18px;color:var(--navy);margin-bottom:10px;font-weight:700;line-height:1.5;}
+  .news-card p{color:var(--slate);font-size:14px;line-height:1.7;flex:1;}
+  .news-link{
+    display:inline-flex;align-items:center;gap:6px;
+    color:var(--burgundy);font-weight:700;font-size:14px;
+    margin-top:16px;cursor:pointer;
+  }
+  .news-link:hover{color:var(--gold);}
+
+  /* ===== Mission/Vision ===== */
+  .mission{
+    background:
+      linear-gradient(135deg,rgba(31,41,55,.92),rgba(139,30,63,.88)),
+      url('https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=1600&q=80') center/cover fixed;
+    color:var(--white);text-align:center;
+  }
+  .mission .section-title{color:var(--white);}
+  .mission .section-tag{color:var(--gold-light);}
+  .mission .section-tag::before,.mission .section-tag::after{background:var(--gold-light);}
+  .mv-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:50px;}
+  .mv-card{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15);
+    backdrop-filter:blur(10px);
+    border-radius:20px;padding:42px 34px;text-align:right;
+  }
+  .mv-icon{
+    width:70px;height:70px;border-radius:50%;
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    color:var(--navy);
+    display:flex;align-items:center;justify-content:center;margin-bottom:22px;
+  }
+  .mv-icon svg{width:34px;height:34px;}
+  .mv-card h3{font-family:'Amiri',serif;font-size:28px;margin-bottom:16px;color:var(--gold-light);}
+  .mv-card p{font-size:16px;line-height:1.9;opacity:.95;}
+
+  /* ===== Contact ===== */
+  .contact{background:var(--cream);}
+  .contact-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:50px;}
+  .contact-info{
+    background:linear-gradient(160deg,var(--burgundy),var(--burgundy-dark));
+    color:var(--white);border-radius:20px;padding:44px 36px;
+    box-shadow:var(--shadow-md);position:relative;overflow:hidden;
+  }
+  .contact-info::before{
+    content:'';position:absolute;width:200px;height:200px;border-radius:50%;
+    background:rgba(201,150,46,.15);bottom:-80px;left:-80px;
+  }
+  .contact-info::after{
+    content:'';position:absolute;width:140px;height:140px;border-radius:50%;
+    background:rgba(255,255,255,.06);top:-50px;right:-50px;
+  }
+  .contact-info h3{font-family:'Amiri',serif;font-size:28px;margin-bottom:14px;position:relative;}
+  .contact-info > p{opacity:.9;margin-bottom:32px;font-size:14.5px;position:relative;}
+  .contact-list{list-style:none;position:relative;}
+  .contact-list li{display:flex;gap:16px;align-items:flex-start;margin-bottom:24px;}
+  .ci-icon{
+    width:42px;height:42px;border-radius:50%;flex-shrink:0;
+    background:rgba(255,255,255,.15);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .ci-icon svg{width:20px;height:20px;color:var(--gold-light);}
+  .ci-text{flex:1;}
+  .ci-text strong{display:block;font-weight:700;font-size:13px;margin-bottom:3px;color:var(--gold-light);}
+  .ci-text span{font-size:14.5px;opacity:.95;line-height:1.6;}
+  .contact-social{display:flex;gap:12px;margin-top:36px;position:relative;}
+  .contact-social a{
+    width:40px;height:40px;border-radius:50%;
+    background:rgba(255,255,255,.12);
+    display:flex;align-items:center;justify-content:center;
+    transition:.2s;
+  }
+  .contact-social a:hover{background:var(--gold);color:var(--navy);transform:translateY(-3px);}
+  .contact-social svg{width:18px;height:18px;}
+
+  .contact-form{
+    background:var(--white);border-radius:20px;padding:44px 38px;
+    box-shadow:var(--shadow-md);
+  }
+  .contact-form h3{font-family:'Amiri',serif;font-size:26px;color:var(--navy);margin-bottom:8px;}
+  .contact-form > p{color:var(--slate);margin-bottom:28px;font-size:14.5px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+  .form-group{margin-bottom:18px;}
+  .form-group label{display:block;font-size:13.5px;color:var(--navy);margin-bottom:8px;font-weight:600;}
+  .form-control{
+    width:100%;padding:13px 16px;
+    border:1.5px solid var(--line);border-radius:10px;
+    font-family:inherit;font-size:14.5px;
+    background:var(--cream);color:var(--navy);
+    transition:.2s;outline:none;
+  }
+  .form-control:focus{border-color:var(--burgundy);background:var(--white);box-shadow:0 0 0 4px var(--rose-soft);}
+  textarea.form-control{resize:vertical;min-height:130px;font-family:inherit;}
+  .submit-btn{
+    background:linear-gradient(135deg,var(--burgundy),var(--burgundy-light));
+    color:var(--white);border:none;padding:14px 36px;border-radius:30px;
+    font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;
+    transition:.25s;display:inline-flex;align-items:center;gap:8px;
+    box-shadow:0 6px 20px rgba(139,30,63,.3);
+  }
+  .submit-btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(139,30,63,.45);}
+  .form-msg{padding:14px 18px;border-radius:10px;margin-top:18px;font-size:14px;display:none;}
+  .form-msg.ok{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;display:block;}
+  .form-msg.err{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;display:block;}
+
+  /* ===== Footer ===== */
+  footer{background:var(--navy);color:#cbd5e1;padding:64px 24px 0;}
+  .footer-grid{
+    max-width:1240px;margin:0 auto;
+    display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:40px;
+    padding-bottom:48px;
+  }
+  .footer-col h4{
+    color:var(--white);font-size:17px;margin-bottom:20px;font-weight:700;
+    position:relative;padding-bottom:12px;
+  }
+  .footer-col h4::after{
+    content:'';position:absolute;bottom:0;right:0;width:36px;height:3px;
+    background:var(--gold);border-radius:2px;
+  }
+  .footer-col p{font-size:14px;line-height:1.9;color:#94a3b8;}
+  .footer-logo{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+  .footer-logo .logo-icon{width:46px;height:46px;}
+  .footer-logo .logo-icon svg{width:24px;height:24px;}
+  .footer-logo h3{color:var(--white);font-family:'Amiri',serif;font-size:20px;}
+  .footer-links{list-style:none;}
+  .footer-links li{margin-bottom:11px;}
+  .footer-links a{color:#94a3b8;font-size:14px;transition:.2s;display:inline-flex;align-items:center;gap:8px;}
+  .footer-links a::before{content:'›';color:var(--gold);font-weight:700;}
+  .footer-links a:hover{color:var(--gold-light);transform:translateX(-4px);}
+  .footer-newsletter input{
+    width:100%;padding:12px 14px;border-radius:8px;border:1px solid #334155;
+    background:#0f172a;color:var(--white);font-family:inherit;font-size:14px;
+    margin-bottom:10px;
+  }
+  .footer-newsletter button{
+    width:100%;background:var(--gold);color:var(--navy);border:none;
+    padding:12px;border-radius:8px;font-weight:700;cursor:pointer;font-family:inherit;
+    transition:.2s;
+  }
+  .footer-newsletter button:hover{background:var(--gold-light);}
+  .footer-bottom{
+    border-top:1px solid #334155;padding:22px 0;
+    text-align:center;font-size:13px;color:#94a3b8;
+  }
+  .footer-bottom a{color:var(--gold-light);}
+
+  /* ===== Modal ===== */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(15,23,42,.75);
+    backdrop-filter:blur(6px);z-index:1000;
+    display:none;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{
+    background:var(--white);border-radius:18px;
+    max-width:720px;width:100%;max-height:90vh;overflow-y:auto;
+    box-shadow:var(--shadow-lg);
+  }
+  .modal-image{height:280px;background-size:cover;background-position:center;border-radius:18px 18px 0 0;background-color:var(--rose-soft);}
+  .modal-body{padding:34px;}
+  .modal-meta{display:flex;gap:16px;color:var(--muted);font-size:13px;margin-bottom:14px;}
+  .modal-body h2{font-family:'Amiri',serif;font-size:30px;color:var(--navy);margin-bottom:16px;line-height:1.4;}
+  .modal-body .content{color:var(--slate);font-size:15.5px;line-height:1.9;white-space:pre-wrap;}
+  .modal-close{
+    position:sticky;top:14px;float:left;
+    width:38px;height:38px;border-radius:50%;
+    background:var(--white);border:none;cursor:pointer;
+    box-shadow:var(--shadow-md);color:var(--burgundy);
+    display:flex;align-items:center;justify-content:center;
+    margin:14px;
+  }
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--muted);grid-column:1/-1;}
+  .empty-state svg{width:60px;height:60px;margin-bottom:14px;opacity:.5;}
+
+  /* ===== Responsive ===== */
+  @media(max-width:960px){
+    .nav-links{
+      display:none;position:absolute;top:100%;right:0;left:0;
+      background:var(--white);flex-direction:column;
+      padding:14px;border-top:1px solid var(--line);
+      box-shadow:var(--shadow-md);
+    }
+    .nav-links.open{display:flex;}
+    .nav-links a{width:100%;padding:12px 16px;}
+    .menu-toggle{display:block;}
+    .nav{flex-wrap:wrap;}
+    .hero h2{font-size:38px;}
+    .hero p{font-size:16px;}
+    .stats-strip{grid-template-columns:1fr 1fr;margin:-50px 16px 0;}
+    .stat-item{border-left:none;border-bottom:1px solid var(--line);padding-bottom:18px;}
+    .stat-item:nth-child(2n){border-bottom:1px solid var(--line);}
+    .stat-item:nth-last-child(-n+2){border-bottom:none;padding-bottom:0;}
+    .about-grid,.contact-grid,.mv-grid{grid-template-columns:1fr;gap:36px;}
+    .programs-grid,.news-grid{grid-template-columns:1fr;}
+    .footer-grid{grid-template-columns:1fr 1fr;}
+    .section-title{font-size:30px;}
+    section{padding:60px 18px;}
+    .form-row{grid-template-columns:1fr;}
+    .about-features{grid-template-columns:1fr;}
+  }
+  @media(max-width:520px){
+    .footer-grid{grid-template-columns:1fr;}
+    .topbar-info{font-size:12px;gap:12px;}
+    .hero{padding:80px 18px 100px;}
+    .hero h2{font-size:30px;}
+    .stats-strip{grid-template-columns:1fr;padding:24px;}
+    .stat-item{border-bottom:1px solid var(--line)!important;padding-bottom:18px;}
+    .stat-item:last-child{border-bottom:none!important;padding-bottom:0;}
+  }
+
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease;}
+  .reveal.show{opacity:1;transform:translateY(0);}
 </style>
 </head>
 <body>
-<div class="header">
-  <div style="display:flex;align-items:center">
-    <div class="dot"></div>
-    <div><div class="htitle">رصد الإعلام التركي</div><div class="hsub">الضفة الغربية — الاستيطان | بيانات حقيقية من GDELT + تحليل Groq</div></div>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-info">
+      <span>📍 <span id="tb-addr">عمّان — الأردن</span></span>
+      <span>📞 <a id="tb-phone" href="tel:+962790000000">+962 79 000 0000</a></span>
+      <span>✉️ <a id="tb-email" href="mailto:info@nisaa-amal.org">info@nisaa-amal.org</a></span>
+    </div>
+    <div class="topbar-social">
+      <a href="#" aria-label="فيسبوك">f</a>
+      <a href="#" aria-label="إنستغرام">◎</a>
+      <a href="#" aria-label="تويتر">𝕏</a>
+      <a href="admin.html" title="لوحة التحكم">⚙</a>
+    </div>
   </div>
-  <div class="badge">GDELT + Groq</div>
 </div>
-<div class="wrap">
 
-  <div class="card">
-    <div class="grid2">
-      <div>
-        <label>🔑 Groq API Key</label>
-        <input type="password" id="groqKey" placeholder="gsk_..." autocomplete="off">
+<!-- Header -->
+<header class="header">
+  <nav class="nav">
+    <a href="#home" class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
       </div>
-      <div>
-        <label>🔗 Cloudflare Worker URL</label>
-        <input type="text" id="workerUrl" placeholder="https://trmedia.walid-faadl.workers.dev" value="https://trmedia.walid-faadl.workers.dev">
+      <div class="logo-text">
+        <h1 id="org-name">جمعية نساء الأمل</h1>
+        <p id="org-tagline">دعم النساء والأطفال في مناطق النزاع</p>
       </div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="#home">الرئيسية</a>
+      <a href="#about">من نحن</a>
+      <a href="#programs">برامجنا</a>
+      <a href="#news">الأخبار والأنشطة</a>
+      <a href="#contact">اتصل بنا</a>
+      <a href="#donate" class="donate-btn">💝 تبرّع الآن</a>
+    </div>
+    <button class="menu-toggle" onclick="toggleMenu()" aria-label="القائمة">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="home">
+  <div class="hero-inner">
+    <div class="hero-badge">✨ معاً نُنير دروب الأمل</div>
+    <h2 id="hero-title">معاً من أجل <span>نساء وأطفال</span><br>يستحقون الأمان والكرامة</h2>
+    <p id="hero-desc">جمعية خيرية نسوية تكرّس جهودها لدعم النساء والأطفال المتضررين من النزاعات في مختلف أنحاء العالم، عبر برامج إغاثة وتعليم وتمكين تعيد لهم الأمل وتبني مستقبلاً أفضل.</p>
+    <div class="hero-actions">
+      <a href="#donate" class="btn-primary">💖 ساهم في الخير</a>
+      <a href="#about" class="btn-outline">تعرّف علينا أكثر</a>
     </div>
   </div>
-
-  <div class="card">
-    <div class="grid4">
-      <div><label>من تاريخ</label><input type="date" id="df" value="2026-01-01"></div>
-      <div><label>إلى تاريخ</label><input type="date" id="dt" value="2026-04-11"></div>
-      <div><label>عدد المقالات</label>
-        <select id="maxrec">
-          <option value="50">50</option>
-          <option value="100">100</option>
-          <option value="250" selected>250</option>
-        </select>
-      </div>
-      <div><label>الكلمة المفتاحية</label>
-        <select id="kwsel">
-          <option value="yerleşim Batı Şeria">yerleşim + Batı Şeria</option>
-          <option value="yerleşimci Filistin">yerleşimci + Filistin</option>
-          <option value="işgal Batı Şeria">işgal + Batı Şeria</option>
-          <option value="ilhak Batı Şeria">ilhak + Batı Şeria</option>
-          <option value="Batı Şeria saldırı">saldırı + Batı Şeria</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn" id="sb" onclick="go()">🔍 ابدأ الرصد والتحليل</button>
+  <div class="hero-wave">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+      <path fill="#faf5ee" d="M0,32L80,37.3C160,43,320,53,480,53.3C640,53,800,43,960,37.3C1120,32,1280,32,1360,32L1440,32L1440,80L0,80Z"></path>
+    </svg>
   </div>
+</section>
 
-  <div class="status hidden" id="stbar">
-    <div class="spin hidden" id="spn"></div>
-    <span id="stxt"></span>
+<!-- Stats -->
+<div class="container" style="padding:0 16px;">
+  <div class="stats-strip" id="statsStrip">
+    <!-- filled by JS -->
   </div>
+</div>
 
-  <div id="res" class="hidden">
-
-    <div class="stats4">
-      <div class="sc2"><div class="sv" id="s1">0</div><div class="sl">مقال مرصود فعلياً</div></div>
-      <div class="sc2"><div class="sv" id="s2">0</div><div class="sl">مصدر تركي مختلف</div></div>
-      <div class="sc2"><div class="sv" id="s3">0%</div><div class="sl">نبرة إدانة</div></div>
-      <div class="sc2"><div class="sv" id="s4">0</div><div class="sl">متوسط النبرة</div></div>
-    </div>
-
-    <div class="tab-bar">
-      <button class="tab on" onclick="showTab('charts')">📊 الإحصاءات</button>
-      <button class="tab" onclick="showTab('analysis')">🧠 تحليل Groq</button>
-      <button class="tab" onclick="showTab('articles')">📰 المقالات</button>
-    </div>
-
-    <div id="tab-charts">
-      <div class="g2">
-        <div class="card" style="margin:0">
-          <div class="ctitle">أبرز المصادر التركية (عدد حقيقي)</div>
-          <div id="sc"></div>
-        </div>
-        <div class="card" style="margin:0">
-          <div class="ctitle">توزيع النبرة التحريرية</div>
-          <div id="tc"></div>
+<!-- About -->
+<section class="about" id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-image reveal">
+        <img src="https://images.unsplash.com/photo-1607748862156-7c548e7e98f4?w=800&q=80" alt="نساء وأطفال" onerror="this.style.display='none'">
+        <div class="about-image-badge">
+          <div class="y" id="about-years">12+</div>
+          <div class="t">عاماً من العطاء والعمل الإنساني</div>
         </div>
       </div>
-      <div class="card">
-        <div class="ctitle">التوزيع الزمني الشهري</div>
-        <div style="display:flex;align-items:flex-end;gap:4px;height:100px;" id="monthly"></div>
-      </div>
-    </div>
-
-    <div id="tab-analysis" class="hidden">
-      <div class="analysis-card">
-        <div class="ctitle">تحليل Groq للزوايا التحريرية</div>
-        <div class="analysis-text" id="analysisText"></div>
-      </div>
-    </div>
-
-    <div id="tab-articles" class="hidden">
-      <div class="articles-wrap">
-        <div class="ah">
-          <div class="aht">المقالات المرصودة من GDELT</div>
-          <div class="cbadge" id="ac">0</div>
+      <div class="about-content reveal">
+        <span class="section-tag">من نحن</span>
+        <h3 id="about-title">نسعى لعالم تعيش فيه كل امرأة وطفل بكرامة وأمان</h3>
+        <p id="about-p1">جمعية نساء الأمل منظمة خيرية مستقلة، تأسست بسواعد نسائية مؤمنة بأن العمل الإنساني هو الجسر الذي يعبر بنا نحو غدٍ أفضل. نعمل في مناطق النزاع لتقديم الدعم الفوري والمستدام للأكثر هشاشة.</p>
+        <p id="about-p2">نلتزم بالشفافية والمحاسبة، ونعمل بالشراكة مع المجتمعات المحلية لضمان وصول الدعم إلى مستحقيه، مع احترام كامل لكرامتهم وثقافتهم.</p>
+        <div class="about-features">
+          <div class="about-feature">
+            <div class="feat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <div class="feat-text"><h4>شفافية كاملة</h4><p>تقارير دورية حول أوجه الإنفاق</p></div>
+          </div>
+          <div class="about-feature">
+            <div class="feat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H7v8h2v-8zm6 0h-2v8h2v-8zm-3-7L4 8h16l-8-4z"/></svg>
+            </div>
+            <div class="feat-text"><h4>ميدان حقيقي</h4><p>فرق نسائية متخصصة في الميدان</p></div>
+          </div>
+          <div class="about-feature">
+            <div class="feat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="feat-text"><h4>استجابة سريعة</h4><p>خلال 48 ساعة من الطوارئ</p></div>
+          </div>
+          <div class="about-feature">
+            <div class="feat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-3-3.87M4 21v-2a4 4 0 013-3.87m13-4a4 4 0 11-8 0 4 4 0 018 0zM6 7a3 3 0 100-6 3 3 0 000 6z"/></svg>
+            </div>
+            <div class="feat-text"><h4>قيادة نسائية</h4><p>ندير برامجنا بأيدي النساء أنفسهن</p></div>
+          </div>
         </div>
-        <div id="al"></div>
       </div>
     </div>
-
   </div>
+</section>
 
-  <div class="empty" id="emp">
-    <div class="ei">📡</div>
-    <div class="et">جاهز للرصد الحقيقي</div>
-    <div class="ed">البيانات من GDELT مباشرة عبر Cloudflare Worker<br>التحليل النوعي من Groq AI</div>
+<!-- Programs -->
+<section class="programs" id="programs">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag">برامجنا</span>
+      <h2 class="section-title">مجالات عملنا الإنساني</h2>
+      <p class="section-sub">نقدّم برامج متكاملة تستهدف النساء والأطفال الأكثر هشاشة في مناطق النزاع</p>
+    </div>
+    <div class="programs-grid" id="programsGrid">
+      <!-- filled by JS -->
+    </div>
   </div>
+</section>
 
-  <div class="fnote">
-    <strong>المصدر:</strong> GDELT Project — قاعدة بيانات إعلامية عالمية. الأرقام حقيقية من مقالات فعلية.
-    النبرة من -100 (إدانة شديدة) إلى +100. <strong>Groq</strong> يحلل عينة من المقالات لاستخراج الزوايا التحريرية.
+<!-- Mission / Vision -->
+<section class="mission">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag">رؤيتنا ورسالتنا</span>
+      <h2 class="section-title">القيم التي نحملها معاً</h2>
+    </div>
+    <div class="mv-grid">
+      <div class="mv-card reveal">
+        <div class="mv-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6M4.22 4.22l4.24 4.24m7.08 7.08l4.24 4.24M1 12h6m10 0h6M4.22 19.78l4.24-4.24m7.08-7.08l4.24-4.24"/></svg>
+        </div>
+        <h3>رؤيتنا</h3>
+        <p id="vision-text">عالم تعيش فيه كل امرأة وكل طفل بكرامة، بعيداً عن الخوف والعنف، يتمتعون بحقهم في التعليم والصحة والأمان، ويُسهمون في بناء مجتمعاتهم بثقة.</p>
+      </div>
+      <div class="mv-card reveal">
+        <div class="mv-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h3>رسالتنا</h3>
+        <p id="mission-text">نعمل على تمكين النساء وحماية الأطفال في مناطق النزاع من خلال برامج إغاثية وتنموية مستدامة، نُقدّمها بشراكة حقيقية مع المجتمعات المحلية، مرتكزين على قيم الكرامة والعدالة والشفافية.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- News -->
+<section class="news" id="news">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag">آخر الأخبار</span>
+      <h2 class="section-title">الأخبار والأنشطة</h2>
+      <p class="section-sub">اطّلع على آخر مستجداتنا وأنشطتنا الميدانية حول العالم</p>
+    </div>
+    <div class="news-grid" id="newsGrid">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section class="contact" id="contact">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag">تواصل معنا</span>
+      <h2 class="section-title">نسعد بتواصلك معنا</h2>
+      <p class="section-sub">سواء كنتِ ترغبين بالتطوع أو التبرع أو لديك استفسار، نحن هنا للإجابة</p>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <h3>معلومات التواصل</h3>
+        <p>يسعدنا استقبالكم في مقرّنا أو التواصل معنا عبر القنوات التالية:</p>
+        <ul class="contact-list">
+          <li>
+            <div class="ci-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+            <div class="ci-text"><strong>العنوان</strong><span id="ci-addr">عمّان — الأردن، شارع المدينة المنورة</span></div>
+          </li>
+          <li>
+            <div class="ci-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg></div>
+            <div class="ci-text"><strong>هاتف</strong><span id="ci-phone">+962 79 000 0000</span></div>
+          </li>
+          <li>
+            <div class="ci-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+            <div class="ci-text"><strong>بريد إلكتروني</strong><span id="ci-email">info@nisaa-amal.org</span></div>
+          </li>
+          <li>
+            <div class="ci-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <div class="ci-text"><strong>ساعات العمل</strong><span id="ci-hours">الأحد - الخميس: 9:00 ص - 5:00 م</span></div>
+          </li>
+        </ul>
+        <div class="contact-social">
+          <a href="#" aria-label="فيسبوك"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+          <a href="#" aria-label="إنستغرام"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zM17.5 6.5h.01"/></svg></a>
+          <a href="#" aria-label="تويتر"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg></a>
+          <a href="#" aria-label="يوتيوب"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#8b1e3f"/></svg></a>
+        </div>
+      </div>
+
+      <form class="contact-form reveal" onsubmit="submitContact(event)">
+        <h3>أرسلي لنا رسالة</h3>
+        <p>سنقوم بالرد عليك في أقرب وقت ممكن.</p>
+        <div class="form-row">
+          <div class="form-group"><label>الاسم الكامل *</label><input type="text" name="name" class="form-control" required></div>
+          <div class="form-group"><label>البريد الإلكتروني *</label><input type="email" name="email" class="form-control" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>رقم الهاتف</label><input type="tel" name="phone" class="form-control"></div>
+          <div class="form-group">
+            <label>الموضوع *</label>
+            <select name="subject" class="form-control" required>
+              <option value="">اختاري الموضوع</option>
+              <option value="استفسار عام">استفسار عام</option>
+              <option value="تطوع">طلب تطوع</option>
+              <option value="تبرع">استفسار حول التبرع</option>
+              <option value="شراكة">طلب شراكة</option>
+              <option value="إعلامي">طلب إعلامي</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>الرسالة *</label><textarea name="message" class="form-control" required></textarea></div>
+        <button type="submit" class="submit-btn">📨 إرسال الرسالة</button>
+        <div class="form-msg" id="formMsg"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="footer-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+        <h3 id="footer-name">جمعية نساء الأمل</h3>
+      </div>
+      <p id="footer-desc">جمعية خيرية نسوية مستقلة، نعمل من أجل دعم النساء والأطفال في مناطق النزاع وإعادة الأمل لحياتهم.</p>
+    </div>
+    <div class="footer-col">
+      <h4>روابط سريعة</h4>
+      <ul class="footer-links">
+        <li><a href="#home">الرئيسية</a></li>
+        <li><a href="#about">من نحن</a></li>
+        <li><a href="#programs">برامجنا</a></li>
+        <li><a href="#news">الأخبار</a></li>
+        <li><a href="#contact">اتصل بنا</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>برامجنا</h4>
+      <ul class="footer-links">
+        <li><a href="#programs">الإغاثة الإنسانية</a></li>
+        <li><a href="#programs">دعم الأطفال</a></li>
+        <li><a href="#programs">تمكين المرأة</a></li>
+        <li><a href="#programs">الصحة والتعليم</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>اشتركي بنشرتنا</h4>
+      <p style="margin-bottom:14px;">احصلي على آخر أخبارنا وأنشطتنا في بريدك.</p>
+      <form class="footer-newsletter" onsubmit="event.preventDefault();this.querySelector('button').textContent='✓ تم الاشتراك';this.reset();">
+        <input type="email" placeholder="بريدك الإلكتروني" required>
+        <button type="submit">اشتراك</button>
+      </form>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © <span id="copyYear">2026</span> <span id="footer-name2">جمعية نساء الأمل</span>. جميع الحقوق محفوظة.
+    · <a href="admin.html">لوحة التحكم</a>
+  </div>
+</footer>
+
+<!-- News Modal -->
+<div class="modal-backdrop" id="newsModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()" aria-label="إغلاق">✕</button>
+    <div class="modal-image" id="modalImage"></div>
+    <div class="modal-body">
+      <div class="modal-meta" id="modalMeta"></div>
+      <h2 id="modalTitle"></h2>
+      <div class="content" id="modalContent"></div>
+    </div>
   </div>
 </div>
 
 <script>
-// Keys storage
-const groqInput = document.getElementById('groqKey');
-try { const s = localStorage.getItem('groq_key'); if(s) groqInput.value = s; } catch{}
-groqInput.addEventListener('input', () => { try { localStorage.setItem('groq_key', groqInput.value); } catch{} });
-
-function showTab(name) {
-  ['charts','analysis','articles'].forEach(t => {
-    document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== name);
-  });
-  document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('on', ['charts','analysis','articles'][i] === name);
-  });
-}
-
-function setStatus(msg, type) {
-  const b = document.getElementById('stbar');
-  b.className = `status ${type}`;
-  b.classList.remove('hidden');
-  document.getElementById('spn').classList.toggle('hidden', type !== 'load');
-  document.getElementById('stxt').textContent = msg;
-}
-
-function fmt(d) { return d.replace(/-/g,''); }
-
-function getDomain(url) {
-  try { return new URL(url).hostname.replace('www.',''); } catch { return url||''; }
-}
-
-function parseTone(t) {
-  if (!t) return null;
-  const v = parseFloat(t.split(',')[0]);
-  return isNaN(v) ? null : v;
-}
-
-function toneInfo(t) {
-  if (t === null) return { lbl:'محايد', cls:'tnu' };
-  if (t < -5) return { lbl:'إدانة شديدة', cls:'tn' };
-  if (t < -2) return { lbl:'انتقادي', cls:'tn' };
-  if (t >  2) return { lbl:'إيجابي', cls:'tpos' };
-  return { lbl:'محايد', cls:'tnu' };
-}
-
-function renderSources(arts) {
-  const cnts = {};
-  arts.forEach(a => { const d = getDomain(a.url||''); cnts[d] = (cnts[d]||0)+1; });
-  const sorted = Object.entries(cnts).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const max = sorted[0]?.[1]||1;
-  const colors = ['#e8a020','#f0b030','#c0392b','#3b82f6','#10b981','#8b5cf6','#ec4899','#f59e0b'];
-  document.getElementById('sc').innerHTML = sorted.map(([s,c],i) => `
-    <div class="brow">
-      <div class="blbl" title="${s}">${s}</div>
-      <div class="btrack"><div class="bfill" style="width:${(c/max*100).toFixed(0)}%;background:${colors[i%colors.length]}">${c>3?c:''}</div></div>
-      <div class="bcnt">${c}</div>
-    </div>`).join('');
-}
-
-function renderTone(arts) {
-  const tones = arts.map(a => parseTone(a.tone)).filter(t => t !== null);
-  const tot = tones.length || 1;
-  const sv  = tones.filter(t=>t<-5).length;
-  const neg = tones.filter(t=>t>=-5&&t<-2).length;
-  const neu = tones.filter(t=>t>=-2&&t<=2).length;
-  const pos = tones.filter(t=>t>2).length;
-  const rows = [
-    {l:'إدانة شديدة',  n:sv,  c:'#c0392b'},
-    {l:'انتقادي',      n:neg, c:'#e67e22'},
-    {l:'محايد / وصفي', n:neu, c:'#64748b'},
-    {l:'إيجابي',       n:pos, c:'#10b981'},
-  ];
-  document.getElementById('tc').innerHTML = rows.map(r => `
-    <div class="trow">
-      <div class="th"><span class="tt">${r.l}</span><span class="tp2">${r.n} (${(r.n/tot*100).toFixed(0)}%)</span></div>
-      <div class="ttrack"><div class="tfill" style="width:${(r.n/tot*100).toFixed(0)}%;background:${r.c}"></div></div>
-    </div>`).join('');
-
-  const negPct = Math.round((sv+neg)/tot*100);
-  const avgTone = tones.length ? (tones.reduce((a,b)=>a+b,0)/tones.length).toFixed(1) : '—';
-  document.getElementById('s3').textContent = negPct + '%';
-  document.getElementById('s4').textContent = avgTone;
-}
-
-function renderMonthly(arts) {
-  const months = {};
-  arts.forEach(a => {
-    const d = a.seendate || '';
-    if (d.length >= 6) {
-      const m = d.slice(0,4) + '-' + d.slice(4,6);
-      months[m] = (months[m]||0) + 1;
+/* ============= STORAGE LAYER ============= */
+const STORAGE_KEY = 'nisaaAmal_data_v1';
+const DEFAULT_DATA = {
+  org: {
+    name: 'جمعية نساء الأمل',
+    tagline: 'دعم النساء والأطفال في مناطق النزاع',
+    address: 'عمّان — الأردن، شارع المدينة المنورة',
+    phone: '+962 79 000 0000',
+    email: 'info@nisaa-amal.org',
+    hours: 'الأحد - الخميس: 9:00 ص - 5:00 م',
+    years: '12+',
+    heroTitleA: 'معاً من أجل',
+    heroTitleHL: 'نساء وأطفال',
+    heroTitleB: 'يستحقون الأمان والكرامة',
+    heroDesc: 'جمعية خيرية نسوية تكرّس جهودها لدعم النساء والأطفال المتضررين من النزاعات في مختلف أنحاء العالم، عبر برامج إغاثة وتعليم وتمكين تعيد لهم الأمل وتبني مستقبلاً أفضل.',
+    aboutTitle: 'نسعى لعالم تعيش فيه كل امرأة وطفل بكرامة وأمان',
+    aboutP1: 'جمعية نساء الأمل منظمة خيرية مستقلة، تأسست بسواعد نسائية مؤمنة بأن العمل الإنساني هو الجسر الذي يعبر بنا نحو غدٍ أفضل. نعمل في مناطق النزاع لتقديم الدعم الفوري والمستدام للأكثر هشاشة.',
+    aboutP2: 'نلتزم بالشفافية والمحاسبة، ونعمل بالشراكة مع المجتمعات المحلية لضمان وصول الدعم إلى مستحقيه، مع احترام كامل لكرامتهم وثقافتهم.',
+    vision: 'عالم تعيش فيه كل امرأة وكل طفل بكرامة، بعيداً عن الخوف والعنف، يتمتعون بحقهم في التعليم والصحة والأمان، ويُسهمون في بناء مجتمعاتهم بثقة.',
+    mission: 'نعمل على تمكين النساء وحماية الأطفال في مناطق النزاع من خلال برامج إغاثية وتنموية مستدامة، نُقدّمها بشراكة حقيقية مع المجتمعات المحلية، مرتكزين على قيم الكرامة والعدالة والشفافية.',
+    footerDesc: 'جمعية خيرية نسوية مستقلة، نعمل من أجل دعم النساء والأطفال في مناطق النزاع وإعادة الأمل لحياتهم.'
+  },
+  stats: [
+    { icon:'women', num:'15,000+', label:'امرأة مستفيدة' },
+    { icon:'child', num:'28,000+', label:'طفلة وطفل تم دعمهم' },
+    { icon:'hand',  num:'12',      label:'منطقة عمل ميدانية' },
+    { icon:'heart', num:'350+',    label:'متطوعة ومتطوع' }
+  ],
+  programs: [
+    { icon:'aid',     title:'الإغاثة العاجلة', desc:'توفير الغذاء والمأوى والمستلزمات الأساسية للعائلات المتضررة في مناطق النزاع، مع التركيز على الفئات الأكثر هشاشة.' },
+    { icon:'edu',     title:'تعليم الأطفال',  desc:'إنشاء مساحات تعليمية آمنة في المخيمات ومناطق الطوارئ، وتوفير المعلمات والمستلزمات الدراسية للأطفال.' },
+    { icon:'health',  title:'الرعاية الصحية', desc:'توفير الرعاية الطبية للأمهات والأطفال، وحملات التوعية الصحية والدعم النفسي للنساء المتضررات.' },
+    { icon:'empower', title:'تمكين المرأة',   desc:'برامج تدريب مهني وريادة أعمال للنساء، تمكّنهن من إعالة أسرهن واستعادة استقلاليتهن الاقتصادية.' },
+    { icon:'shield',  title:'الحماية والدعم النفسي', desc:'تقديم المساندة النفسية والقانونية للنساء الناجيات من العنف، وتوفير ملاجئ آمنة عند الحاجة.' },
+    { icon:'voice',   title:'المناصرة والتوعية', desc:'الدفاع عن قضايا النساء والأطفال في مناطق النزاع عبر التقارير والحملات الإعلامية الدولية.' }
+  ],
+  news: [
+    {
+      id: 1,
+      title: 'افتتاح مركز جديد لدعم الأمهات في المخيم الشمالي',
+      category: 'أنشطة',
+      date: '2026-04-28',
+      image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&q=80',
+      excerpt: 'بدعم من شركائنا، افتتحنا هذا الأسبوع مركزاً متكاملاً يقدم خدمات الرعاية للأمهات الحوامل والمرضعات في المخيم الشمالي.',
+      content: 'في خطوة نوعية لتعزيز الدعم المقدم للأمهات في مناطق النزاع، تم افتتاح مركز جديد لدعم الأمهات في المخيم الشمالي بحضور شركاء الجمعية والشخصيات المحلية.\n\nيقدم المركز خدمات متكاملة تشمل:\n• الرعاية الصحية للأمهات الحوامل والمرضعات\n• استشارات التغذية للأطفال دون سن الخامسة\n• ورش تدريبية حول رعاية الرضع\n• الدعم النفسي والاجتماعي\n\nمن المتوقع أن يخدم المركز أكثر من 1500 أم وطفل خلال الأشهر الستة الأولى من تشغيله. يأتي هذا الافتتاح ضمن خطة الجمعية الاستراتيجية لتوسيع نطاق خدماتها في المناطق الأكثر احتياجاً.'
+    },
+    {
+      id: 2,
+      title: 'حملة "كتاب لكل طفلة" توزع 5000 حقيبة مدرسية',
+      category: 'أخبار',
+      date: '2026-04-15',
+      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80',
+      excerpt: 'انطلقت حملتنا السنوية "كتاب لكل طفلة" بتوزيع 5000 حقيبة مدرسية مجهزة بالكامل على الطالبات في المناطق المتضررة.',
+      content: 'في إطار التزامها بضمان حق التعليم لكل طفلة، أطلقت جمعية نساء الأمل النسخة الخامسة من حملتها السنوية "كتاب لكل طفلة"، والتي تستهدف هذا العام توزيع 5000 حقيبة مدرسية مجهزة بالكامل.\n\nتتضمن كل حقيبة:\n• الكتب والدفاتر اللازمة للعام الدراسي\n• أدوات قرطاسية متكاملة\n• زي مدرسي\n• وجبة خفيفة\n\nشاركت في الحملة فرق من المتطوعات في 8 مناطق مختلفة، وامتدت على مدى أسبوعين كاملين. عبّرت الأمهات عن امتنانهن العميق لهذه المبادرة التي خففت عنهن عبء بداية العام الدراسي.'
+    },
+    {
+      id: 3,
+      title: 'انطلاق برنامج تدريب مهني لـ 200 امرأة',
+      category: 'برامج',
+      date: '2026-03-22',
+      image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&q=80',
+      excerpt: 'بدأنا برنامجاً تدريبياً لمدة ستة أشهر يستهدف 200 امرأة من المعيلات لأسرهن في مجالات الخياطة والطبخ والحرف اليدوية.',
+      content: 'انطلق هذا الأسبوع برنامج تدريبي شامل يستهدف 200 امرأة من المعيلات لأسرهن، يهدف إلى تمكينهن اقتصادياً عبر اكتساب مهارات مهنية تساعدهن في إيجاد مصدر دخل مستدام.\n\nيتضمن البرنامج التدريب في مجالات:\n• الخياطة والتفصيل (60 امرأة)\n• الطبخ والتغذية (50 امرأة)\n• الحرف اليدوية والإكسسوارات (50 امرأة)\n• الحلاقة والتجميل (40 امرأة)\n\nيمتد البرنامج لستة أشهر، تتلقى خلالها المشاركات تدريباً نظرياً وعملياً، بالإضافة إلى محاضرات في إدارة المشاريع الصغيرة. وفي ختام البرنامج، ستحصل كل مشاركة على شهادة معتمدة وحقيبة أدوات لبدء مشروعها الخاص.'
     }
-  });
-  const sorted = Object.entries(months).sort((a,b) => a[0].localeCompare(b[0]));
-  const max = Math.max(...sorted.map(s=>s[1]), 1);
-  document.getElementById('monthly').innerHTML = sorted.map(([m,c]) => `
-    <div class="month-wrap" title="${m}: ${c} مقال">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${c}</div>
-      <div style="width:100%;height:${Math.max((c/max*80),4).toFixed(0)}px;background:var(--accent);border-radius:3px 3px 0 0;opacity:.8;"></div>
-      <div style="font-size:9px;color:var(--muted);margin-top:4px;">${m.slice(5)}</div>
-    </div>`).join('');
+  ],
+  messages: []
+};
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return Object.assign({}, DEFAULT_DATA, JSON.parse(raw));
+  }catch{}
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+function saveData(d){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }catch{}
 }
 
-function renderArticles(arts) {
-  document.getElementById('al').innerHTML = arts.slice(0,100).map(a => {
-    const t = parseTone(a.tone);
-    const ti = toneInfo(t);
-    const tv = t !== null ? t.toFixed(1) : '—';
-    const d = a.seendate||'';
-    const df = d.length>=8 ? `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}` : '';
-    const sc = t!==null?(t<-2?'#e74c3c':t>2?'#10b981':'#64748b'):'#64748b';
-    return `<a href="${a.url||'#'}" target="_blank" rel="noopener" class="aitem">
-      <div>
-        <div class="atitle">${a.title||'(بدون عنوان)'}</div>
-        <div class="ameta">
-          <span class="asrc">${getDomain(a.url||'')}</span>
-          <span class="adate">${df}</span>
-          <span class="tpill ${ti.cls}">${ti.lbl}</span>
+const data = loadData();
+
+/* ============= ICONS ============= */
+const ICONS = {
+  women:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5 22l2-7h10l2 7"/><path d="M9 11l-2 4M15 11l2 4"/></svg>`,
+  child:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="6" r="3"/><path d="M9 14v8M15 14v8M7 11h10l-2 6H9l-2-6z"/></svg>`,
+  hand: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6m-3-3h6"/><path d="M3 12c0-2 1-4 3-4 3 0 4 3 6 3s3-3 6-3c2 0 3 2 3 4 0 5-5 10-9 10s-9-5-9-10z"/></svg>`,
+  heart:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`,
+  aid:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L4 7v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V7l-8-5z"/><path d="M12 8v6M9 11h6"/></svg>`,
+  edu:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 4 2 10l10 6 10-6z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/></svg>`,
+  health:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/><path d="M9 12h6M12 9v6" stroke="white" stroke-width="1.5"/></svg>`,
+  empower:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 1-4.5 4.5L18 20l-6-3-6 3 1.5-6.5L3 9l6-1 3-6z"/></svg>`,
+  shield:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4v6c0 5-4 9-9 10-5-1-9-5-9-10V6l9-4z"/></svg>`,
+  voice:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7v16l-9-7zM21 7v10M17 9v6"/></svg>`,
+  star: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-7z"/></svg>`,
+  book: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`,
+  globe:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>`
+};
+
+/* ============= RENDERING ============= */
+function applyOrgInfo(){
+  const o = data.org;
+  document.getElementById('org-name').textContent = o.name;
+  document.getElementById('org-tagline').textContent = o.tagline;
+  document.getElementById('footer-name').textContent = o.name;
+  document.getElementById('footer-name2').textContent = o.name;
+  document.getElementById('footer-desc').textContent = o.footerDesc;
+  document.getElementById('tb-addr').textContent = o.address;
+  document.getElementById('tb-phone').textContent = o.phone;
+  document.getElementById('tb-phone').href = 'tel:' + o.phone.replace(/\s/g,'');
+  document.getElementById('tb-email').textContent = o.email;
+  document.getElementById('tb-email').href = 'mailto:' + o.email;
+  document.getElementById('ci-addr').textContent = o.address;
+  document.getElementById('ci-phone').textContent = o.phone;
+  document.getElementById('ci-email').textContent = o.email;
+  document.getElementById('ci-hours').textContent = o.hours;
+  document.getElementById('about-years').textContent = o.years;
+  document.getElementById('about-title').textContent = o.aboutTitle;
+  document.getElementById('about-p1').textContent = o.aboutP1;
+  document.getElementById('about-p2').textContent = o.aboutP2;
+  document.getElementById('vision-text').textContent = o.vision;
+  document.getElementById('mission-text').textContent = o.mission;
+  document.getElementById('hero-desc').textContent = o.heroDesc;
+  document.getElementById('hero-title').innerHTML = `${escapeHtml(o.heroTitleA)} <span>${escapeHtml(o.heroTitleHL)}</span><br>${escapeHtml(o.heroTitleB)}`;
+  document.getElementById('copyYear').textContent = new Date().getFullYear();
+  document.title = `${o.name} — ${o.tagline}`;
+}
+
+function renderStats(){
+  document.getElementById('statsStrip').innerHTML = data.stats.map(s => `
+    <div class="stat-item">
+      <div class="stat-icon">${ICONS[s.icon]||ICONS.heart}</div>
+      <div class="stat-num">${escapeHtml(s.num)}</div>
+      <div class="stat-label">${escapeHtml(s.label)}</div>
+    </div>
+  `).join('');
+}
+
+function renderPrograms(){
+  document.getElementById('programsGrid').innerHTML = data.programs.map(p => `
+    <div class="program-card reveal">
+      <div class="program-icon">${ICONS[p.icon]||ICONS.heart}</div>
+      <h3>${escapeHtml(p.title)}</h3>
+      <p>${escapeHtml(p.desc)}</p>
+    </div>
+  `).join('');
+}
+
+function renderNews(){
+  const grid = document.getElementById('newsGrid');
+  if(!data.news.length){
+    grid.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p>لا توجد أخبار منشورة حالياً</p></div>`;
+    return;
+  }
+  const sorted = [...data.news].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  grid.innerHTML = sorted.map(n => `
+    <article class="news-card reveal" onclick="openNews(${n.id})">
+      <div class="news-image" style="background-image:url('${escapeAttr(n.image||'')}');">
+        <span class="news-cat">${escapeHtml(n.category||'خبر')}</span>
+      </div>
+      <div class="news-body">
+        <div class="news-meta">
+          <span>📅 ${formatDate(n.date)}</span>
         </div>
+        <h3>${escapeHtml(n.title)}</h3>
+        <p>${escapeHtml(n.excerpt||'')}</p>
+        <span class="news-link">اقرئي المزيد →</span>
       </div>
-      <div class="ascore">
-        <div class="asv" style="color:${sc}">${tv}</div>
-        <div class="asl">نبرة</div>
-      </div>
-    </a>`;
-  }).join('');
+    </article>
+  `).join('');
+  observeReveal();
 }
 
-async function analyzeWithGroq(arts, groqKey) {
-  const sample = arts.slice(0,30).map(a => `- ${a.title||''} (${getDomain(a.url||'')})`).join('\n');
-  const tones = arts.map(a => parseTone(a.tone)).filter(t=>t!==null);
-  const avgTone = tones.length ? (tones.reduce((a,b)=>a+b,0)/tones.length).toFixed(1) : '—';
+function openNews(id){
+  const n = data.news.find(x => x.id === id);
+  if(!n) return;
+  document.getElementById('modalImage').style.backgroundImage = `url('${n.image||''}')`;
+  document.getElementById('modalMeta').innerHTML = `<span>📅 ${formatDate(n.date)}</span> · <span>🏷️ ${escapeHtml(n.category||'')}</span>`;
+  document.getElementById('modalTitle').textContent = n.title;
+  document.getElementById('modalContent').textContent = n.content || n.excerpt || '';
+  document.getElementById('newsModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(){
+  document.getElementById('newsModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
 
-  const prompt = `أنت محلل إعلامي. إليك عينة من ${arts.length} مقالاً تركياً عن الاستيطان في الضفة الغربية (متوسط النبرة: ${avgTone} على مقياس -100 إلى +100):
+function submitContact(e){
+  e.preventDefault();
+  const f = e.target;
+  const msg = {
+    id: Date.now(),
+    name: f.name.value.trim(),
+    email: f.email.value.trim(),
+    phone: f.phone.value.trim(),
+    subject: f.subject.value,
+    message: f.message.value.trim(),
+    date: new Date().toISOString(),
+    read: false
+  };
+  data.messages.push(msg);
+  saveData(data);
+  const m = document.getElementById('formMsg');
+  m.className = 'form-msg ok';
+  m.textContent = '✓ تم استلام رسالتك بنجاح! سنتواصل معك قريباً.';
+  f.reset();
+  setTimeout(() => { m.className = 'form-msg'; m.textContent = ''; }, 5000);
+}
 
-${sample}
+/* ============= UTILITIES ============= */
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+function escapeAttr(s){ return escapeHtml(s).replace(/`/g,'&#96;'); }
+function formatDate(d){
+  if(!d) return '';
+  try{
+    const dt = new Date(d);
+    const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
+  }catch{ return d; }
+}
 
-حلّل في 5-6 فقرات:
-1. الزاوية التحريرية السائدة
-2. المصطلحات والمفردات الأكثر استخداماً
-3. زوايا الرواية (قانوني، إنساني، سياسي...)
-4. ما يُبرز وما يُغيَّب
-5. الفرق بين المصادر الحكومية (AA, TRT) والمستقلة`;
+function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
 
-  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${groqKey}` },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [{ role:'user', content: prompt }],
-      max_tokens: 1500,
-      temperature: 0.7,
-      stream: true
-    })
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
+});
+
+/* Active nav on scroll */
+const sections = ['home','about','programs','news','contact'];
+window.addEventListener('scroll', () => {
+  const y = window.scrollY + 120;
+  let active = 'home';
+  for(const id of sections){
+    const el = document.getElementById(id);
+    if(el && el.offsetTop <= y) active = id;
+  }
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + active && !a.classList.contains('donate-btn'));
   });
+});
 
-  if (!resp.ok) { const e = await resp.json(); throw new Error(e.error?.message||`Groq HTTP ${resp.status}`); }
-
-  const textEl = document.getElementById('analysisText');
-  textEl.innerHTML = '<span class="cursor"></span>';
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let full = '';
-
-  while (true) {
-    const {done, value} = await reader.read();
-    if (done) break;
-    const lines = decoder.decode(value).split('\n');
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue;
-      const d = line.slice(6);
-      if (d==='[DONE]') continue;
-      try {
-        const p = JSON.parse(d);
-        const txt = p.choices?.[0]?.delta?.content||'';
-        if (txt) { full += txt; textEl.innerHTML = full.replace(/\n/g,'<br>') + '<span class="cursor"></span>'; }
-      } catch {}
-    }
-  }
-  textEl.innerHTML = full.replace(/\n/g,'<br>');
+/* Reveal on scroll */
+function observeReveal(){
+  const els = document.querySelectorAll('.reveal:not(.show)');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('show'); io.unobserve(e.target); } });
+  }, { threshold:0.12 });
+  els.forEach(el => io.observe(el));
 }
 
-async function go() {
-  const groqKey = document.getElementById('groqKey').value.trim();
-  const workerUrl = document.getElementById('workerUrl').value.trim().replace(/\/$/, '');
-  if (!workerUrl) { alert('أدخل رابط الـ Worker'); return; }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
 
-  const df = document.getElementById('df').value;
-  const dt = document.getElementById('dt').value;
-  const max = document.getElementById('maxrec').value;
-  const kw = document.getElementById('kwsel').value;
-  const btn = document.getElementById('sb');
-
-  btn.disabled = true;
-  document.getElementById('emp').classList.add('hidden');
-  document.getElementById('res').classList.add('hidden');
-  setStatus('جارٍ جلب البيانات من GDELT عبر Cloudflare Worker...', 'load');
-
-  try {
-    const url = `${workerUrl}/?query=${encodeURIComponent(kw)}&from=${fmt(df)}000000&to=${fmt(dt)}235959&max=${max}`;
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`Worker error: ${resp.status}`);
-    const data = await resp.json();
-    if (data.error) throw new Error(data.error);
-
-    const arts = data.articles || [];
-    if (!arts.length) { setStatus('لا نتائج — جرب كلمة مفتاحية مختلفة', 'err'); btn.disabled=false; return; }
-
-    const sources = new Set(arts.map(a => getDomain(a.url||''))).size;
-    document.getElementById('s1').textContent = arts.length;
-    document.getElementById('s2').textContent = sources;
-    document.getElementById('ac').textContent = arts.length + ' مقال';
-
-    renderSources(arts);
-    renderTone(arts);
-    renderMonthly(arts);
-    renderArticles(arts);
-
-    document.getElementById('res').classList.remove('hidden');
-    setStatus(`✓ ${arts.length} مقال حقيقي من ${sources} مصدراً تركياً`, 'ok');
-
-    // Groq analysis
-    if (groqKey) {
-      setStatus('جارٍ تحليل Groq للزوايا التحريرية...', 'load');
-      await analyzeWithGroq(arts, groqKey);
-      setStatus(`✓ اكتمل — ${arts.length} مقال + تحليل Groq`, 'ok');
-    }
-
-  } catch(e) {
-    setStatus(`خطأ: ${e.message}`, 'err');
-    console.error(e);
-  }
-  btn.disabled = false;
-}
+/* INIT */
+applyOrgInfo();
+renderStats();
+renderPrograms();
+renderNews();
+observeReveal();
 </script>
 </body>
 </html>
