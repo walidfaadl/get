@@ -1,10 +1,10 @@
 /* ==========================================================
    NisaaAmal — IndexedDB data layer
-   Object stores: news, programs, messages, settings, stats, meta
+   Object stores: news, programs, messages, settings, stats, tasks, meta
    ========================================================== */
 (function(global){
   const DB_NAME = 'nisaaAmalDB';
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
   const LS_LEGACY = 'nisaaAmal_data_v1';
   const LS_PW = 'nisaaAmal_pw_v1';
 
@@ -23,6 +23,11 @@
     ]},
     stats:    { keyPath:'id', autoIncrement:true, indexes:[
       { name:'order', keyPath:'order' }
+    ]},
+    tasks:    { keyPath:'id', autoIncrement:true, indexes:[
+      { name:'status', keyPath:'status' },
+      { name:'department', keyPath:'department' },
+      { name:'createdAt', keyPath:'createdAt' }
     ]},
     settings: { keyPath:'key' },
     meta:     { keyPath:'key' }
@@ -308,6 +313,64 @@
       return all.filter(m => !m.read).length;
     },
 
+    /* ===== Tasks (نظام المهام: مدير ⇄ مدير قسم) ===== */
+    async listTasks({ status=null, department=null } = {}){
+      const db = await open();
+      let all = await reqP(tx(db,'tasks').getAll());
+      if(status) all = all.filter(t => t.status === status);
+      if(department) all = all.filter(t => t.department === department);
+      return all.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+    },
+    async getTask(id){
+      const db = await open();
+      return await reqP(tx(db,'tasks').get(Number(id)));
+    },
+    async saveTask(item){
+      const db = await open();
+      const store = tx(db,'tasks','readwrite');
+      const now = Date.now();
+      let payload;
+      if(item.id){
+        const existing = await reqP(store.get(Number(item.id)));
+        payload = { ...(existing||{}), ...item, updatedAt: now };
+      }else{
+        payload = {
+          title:'', details:'', department:'', priority:'متوسطة',
+          dueDate:'', assignedBy:'المدير',
+          status:'جديدة',            // جديدة | قيد التنفيذ | تمت | لم تتم
+          managerNote:'', reply:'', repliedAt:null, repliedBy:'',
+          ...item,
+          createdAt: now, updatedAt: now
+        };
+      }
+      const id = await reqP(store.put(payload));
+      return id;
+    },
+    async replyTask(id, { status, reply, repliedBy='مدير القسم' }){
+      const db = await open();
+      const store = tx(db,'tasks','readwrite');
+      const t = await reqP(store.get(Number(id)));
+      if(!t) return null;
+      t.status = status || t.status;
+      t.reply = reply != null ? reply : t.reply;
+      t.repliedBy = repliedBy;
+      t.repliedAt = Date.now();
+      t.updatedAt = Date.now();
+      await reqP(store.put(t));
+      return t;
+    },
+    async deleteTask(id){
+      const db = await open();
+      await reqP(tx(db,'tasks','readwrite').delete(Number(id)));
+    },
+    async taskCounts(){
+      const db = await open();
+      const all = await reqP(tx(db,'tasks').getAll());
+      const c = { total:all.length, 'جديدة':0, 'قيد التنفيذ':0, 'تمت':0, 'لم تتم':0 };
+      all.forEach(t => { if(c[t.status] != null) c[t.status]++; });
+      return c;
+    },
+
     /* Auth */
     getPassword(){ return localStorage.getItem(LS_PW) || 'admin123'; },
     setPassword(pw){ localStorage.setItem(LS_PW, pw); },
@@ -315,34 +378,36 @@
     /* Backup/Restore */
     async exportAll(){
       const db = await open();
-      const [news, programs, stats, messages, settings, meta] = await Promise.all([
+      const [news, programs, stats, messages, tasks, settings, meta] = await Promise.all([
         reqP(tx(db,'news').getAll()),
         reqP(tx(db,'programs').getAll()),
         reqP(tx(db,'stats').getAll()),
         reqP(tx(db,'messages').getAll()),
+        reqP(tx(db,'tasks').getAll()),
         reqP(tx(db,'settings').getAll()),
         reqP(tx(db,'meta').getAll())
       ]);
-      return { schema:'nisaaAmal/v1', exportedAt:new Date().toISOString(), news, programs, stats, messages, settings, meta };
+      return { schema:'nisaaAmal/v1', exportedAt:new Date().toISOString(), news, programs, stats, messages, tasks, settings, meta };
     },
     async importAll(payload){
       const db = await open();
-      const t = db.transaction(['news','programs','stats','messages','settings','meta'], 'readwrite');
+      const t = db.transaction(['news','programs','stats','messages','tasks','settings','meta'], 'readwrite');
       const get = (n) => t.objectStore(n);
-      await Promise.all(['news','programs','stats','messages','settings','meta'].map(n => reqP(get(n).clear())));
+      await Promise.all(['news','programs','stats','messages','tasks','settings','meta'].map(n => reqP(get(n).clear())));
       const put = (s, items) => Promise.all((items||[]).map(it => reqP(s.add(it))));
       await put(get('news'), payload.news);
       await put(get('programs'), payload.programs);
       await put(get('stats'), payload.stats);
       await put(get('messages'), payload.messages);
+      await put(get('tasks'), payload.tasks);
       await Promise.all((payload.settings||[]).map(it => reqP(get('settings').put(it))));
       await Promise.all((payload.meta||[]).map(it => reqP(get('meta').put(it))));
       return new Promise((resolve, reject) => { t.oncomplete = () => resolve(); t.onerror = () => reject(t.error); });
     },
     async resetAll(){
       const db = await open();
-      const t = db.transaction(['news','programs','stats','messages','settings','meta'], 'readwrite');
-      await Promise.all(['news','programs','stats','messages','settings','meta'].map(n => reqP(t.objectStore(n).clear())));
+      const t = db.transaction(['news','programs','stats','messages','tasks','settings','meta'], 'readwrite');
+      await Promise.all(['news','programs','stats','messages','tasks','settings','meta'].map(n => reqP(t.objectStore(n).clear())));
       await new Promise((res, rej) => { t.oncomplete = res; t.onerror = () => rej(t.error); });
       await seedIfEmpty(db);
     }
