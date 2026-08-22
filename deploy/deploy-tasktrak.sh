@@ -88,13 +88,16 @@ HAS_MGR="$(ssh "$SSH_HOST" "cd ~/$REMOTE_DIR && php -r '
 
 if [ "$HAS_MGR" = "yes" ]; then
   echo "  حساب مدير موجود بالفعل — تخطّي إنشاء الحساب."
+  echo "  تطبيق ترحيلات قاعدة البيانات (إن وُجدت) ..."
+  ssh "$SSH_HOST" "cd ~/$REMOTE_DIR && php bin/migrate.php" || echo "  (تنبيه: تعذّر تطبيق الترحيلات — راجع لاحقاً)"
 else
   echo "  لننشئ حساب المدير الأول:"
   read -r -p "    اسم المدير: " M_NAME
   read -r -p "    اسم المستخدم للدخول: " M_USER
+  read -r -p "    البريد الإلكتروني (اختياري، للإشعارات): " M_MAIL
   read -r -s -p "    كلمة المرور: " M_PASS; echo
   [ -n "$M_NAME" ] && [ -n "$M_USER" ] && [ -n "$M_PASS" ] || die "البيانات ناقصة."
-  ssh "$SSH_HOST" "cd ~/$REMOTE_DIR && php bin/seed_user.php manager $(printf %q "$M_NAME") $(printf %q "$M_USER") $(printf %q "$M_PASS")" \
+  ssh "$SSH_HOST" "cd ~/$REMOTE_DIR && php bin/seed_user.php manager $(printf %q "$M_NAME") $(printf %q "$M_USER") $(printf %q "$M_PASS") '' $(printf %q "$M_MAIL")" \
     || die "فشل إنشاء حساب المدير. راجع app/config.local.php واتصال قاعدة البيانات."
   echo "  ✓ تم إنشاء حساب المدير."
 fi

@@ -175,11 +175,12 @@ function username_exists(string $username, int $exceptId = 0): bool
 function user_create(array $d): int
 {
     q(
-        'INSERT INTO users (name, username, password_hash, role, department, active)
-         VALUES (?,?,?,?,?,1)',
+        'INSERT INTO users (name, username, email, password_hash, role, department, active)
+         VALUES (?,?,?,?,?,?,1)',
         [
             $d['name'],
             $d['username'],
+            ($d['email'] ?? '') ?: null,
             password_hash($d['password'], PASSWORD_DEFAULT),
             pick($d['role'] ?? 'head', ['manager', 'head'], 'head'),
             $d['department'] ?: null,
@@ -190,15 +191,16 @@ function user_create(array $d): int
 
 function user_update(int $id, array $d): void
 {
+    $email = ($d['email'] ?? '') ?: null;
     if (!empty($d['password'])) {
-        q('UPDATE users SET name = ?, username = ?, role = ?, department = ?, active = ?, password_hash = ? WHERE id = ?', [
-            $d['name'], $d['username'], pick($d['role'] ?? 'head', ['manager', 'head'], 'head'),
+        q('UPDATE users SET name = ?, username = ?, email = ?, role = ?, department = ?, active = ?, password_hash = ? WHERE id = ?', [
+            $d['name'], $d['username'], $email, pick($d['role'] ?? 'head', ['manager', 'head'], 'head'),
             $d['department'] ?: null, (int) ($d['active'] ?? 1),
             password_hash($d['password'], PASSWORD_DEFAULT), $id,
         ]);
     } else {
-        q('UPDATE users SET name = ?, username = ?, role = ?, department = ?, active = ? WHERE id = ?', [
-            $d['name'], $d['username'], pick($d['role'] ?? 'head', ['manager', 'head'], 'head'),
+        q('UPDATE users SET name = ?, username = ?, email = ?, role = ?, department = ?, active = ? WHERE id = ?', [
+            $d['name'], $d['username'], $email, pick($d['role'] ?? 'head', ['manager', 'head'], 'head'),
             $d['department'] ?: null, (int) ($d['active'] ?? 1), $id,
         ]);
     }
@@ -218,4 +220,69 @@ function managers_count(): int
 {
     $r = q_one("SELECT COUNT(*) c FROM users WHERE role = 'manager' AND active = 1");
     return (int) ($r['c'] ?? 0);
+}
+
+/* ---------- الصلاحيات: نطاق رؤية مدير القسم ---------- */
+
+/**
+ * هل يحقّ للمستخدم رؤية/التعامل مع هذه المهمة؟
+ * المدير يرى الكل؛ مدير القسم يرى المسندة إليه أو لقسمه فقط.
+ */
+function task_in_scope(array $task, array $user): bool
+{
+    if (($user['role'] ?? '') === 'manager') {
+        return true;
+    }
+    if ((int) ($task['assigned_to'] ?? 0) === (int) ($user['id'] ?? -1)) {
+        return true;
+    }
+    $dep = trim((string) ($user['department'] ?? ''));
+    return $dep !== '' && trim((string) ($task['department'] ?? '')) === $dep;
+}
+
+/* ---------- إحصائيات (للمدير) ---------- */
+
+function stats_by_department(): array
+{
+    return q_all(
+        "SELECT COALESCE(NULLIF(department,''),'— بدون قسم —') dep,
+                COUNT(*) total,
+                SUM(status='جديدة')      AS new_,
+                SUM(status='قيد التنفيذ') AS prog,
+                SUM(status='تمت')        AS done,
+                SUM(status='لم تتم')      AS fail
+         FROM tasks
+         GROUP BY dep
+         ORDER BY total DESC"
+    );
+}
+
+function stats_by_assignee(): array
+{
+    return q_all(
+        "SELECT u.name, u.department,
+                COUNT(t.id) total,
+                SUM(t.status='تمت')  AS done,
+                SUM(t.status='لم تتم') AS fail,
+                SUM(t.status IN ('جديدة','قيد التنفيذ')) AS open_
+         FROM users u
+         LEFT JOIN tasks t ON t.assigned_to = u.id
+         WHERE u.role = 'head' AND u.active = 1
+         GROUP BY u.id
+         ORDER BY total DESC, u.name ASC"
+    );
+}
+
+/** المهام المتأخرة: تجاوزت الاستحقاق ولمّا تُنجَز أو تُغلَق. */
+function overdue_tasks(): array
+{
+    return q_all(
+        "SELECT t.*, u.name AS assignee_name
+         FROM tasks t
+         LEFT JOIN users u ON u.id = t.assigned_to
+         WHERE t.due_date IS NOT NULL
+           AND t.due_date < CURDATE()
+           AND t.status NOT IN ('تمت','لم تتم')
+         ORDER BY t.due_date ASC"
+    );
 }

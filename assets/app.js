@@ -14,6 +14,7 @@ function fillUserForm(u) {
   document.getElementById('u_id').value = u.id;
   document.getElementById('u_name').value = u.name || '';
   document.getElementById('u_username').value = u.username || '';
+  document.getElementById('u_email').value = u.email || '';
   document.getElementById('u_role').value = u.role || 'head';
   document.getElementById('u_department').value = u.department || '';
   document.getElementById('u_password').value = '';

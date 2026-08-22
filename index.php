@@ -6,7 +6,7 @@ require __DIR__ . '/app/bootstrap.php';
 // إن لم تُهيّأ قاعدة البيانات بعد، وجّه إلى المُثبِّت.
 try {
     db();
-    $__installed = q_one('SELECT id FROM users LIMIT 1') !== null || managers_count() >= 0;
+    run_migrations();
 } catch (Throwable $ex) {
     if (is_file(__DIR__ . '/install.php')) {
         redirect('install.php');
@@ -82,6 +82,11 @@ switch ($r) {
             render('message', ['heading' => 'غير موجودة', 'text' => 'المهمة غير موجودة.'], 'خطأ');
             break;
         }
+        if (!task_in_scope($task, $me)) {
+            http_response_code(403);
+            render('message', ['heading' => 'غير مصرّح', 'text' => 'هذه المهمة خارج نطاق قسمك.'], 'غير مصرّح');
+            break;
+        }
         render('task_detail', [
             'task'     => $task,
             'comments' => comments_for($id),
@@ -129,12 +134,20 @@ switch ($r) {
             redirect($id ? url('edit', ['id' => $id]) : url('new'));
         }
         if ($id) {
+            $before = task_get($id);
             task_update($id, $data);
+            // إشعار عند إسناد المهمة إلى مدير قسم جديد
+            if ($data['assigned_to'] && (int) ($before['assigned_to'] ?? 0) !== (int) $data['assigned_to']) {
+                notify_task_assigned($id, (int) $data['assigned_to']);
+            }
             flash('تم تحديث المهمة.');
             redirect(url('task', ['id' => $id]));
         } else {
             $data['created_by'] = $me['id'];
             $newId = task_create($data);
+            if ($data['assigned_to']) {
+                notify_task_assigned($newId, (int) $data['assigned_to']);
+            }
             flash('تمت إضافة المهمة.');
             redirect(url('task', ['id' => $newId]));
         }
@@ -166,11 +179,17 @@ switch ($r) {
         $id     = (int) ($_POST['id'] ?? 0);
         $status = (string) ($_POST['status'] ?? '');
         $reply  = trim((string) ($_POST['reply'] ?? ''));
+        $task   = task_get($id);
+        if (!$task || !task_in_scope($task, $me)) {
+            http_response_code(403);
+            exit('هذه المهمة خارج نطاق قسمك.');
+        }
         if (!in_array($status, REPLY_STATUSES, true)) {
             flash('اختر حالة المهمة (تمت / قيد التنفيذ / لم تتم).', 'err');
             redirect(url('task', ['id' => $id]));
         }
         task_reply($id, $status, $reply, $me['name']);
+        notify_task_replied($id);
         flash('تم حفظ التعقيب.');
         redirect(url('task', ['id' => $id]));
         break;
@@ -184,11 +203,28 @@ switch ($r) {
         csrf_check();
         $id   = (int) ($_POST['id'] ?? 0);
         $body = trim((string) ($_POST['body'] ?? ''));
-        if ($body !== '' && task_get($id)) {
+        $task = task_get($id);
+        if (!$task || !task_in_scope($task, $me)) {
+            http_response_code(403);
+            exit('هذه المهمة خارج نطاق قسمك.');
+        }
+        if ($body !== '') {
             comment_add($id, $me, $body);
             flash('تمت إضافة الملاحظة.');
         }
         redirect(url('task', ['id' => $id]) . '#comments');
+        break;
+    }
+
+    /* ===== لوحة الإحصائيات (المدير) ===== */
+    case 'stats': {
+        require_manager();
+        render('stats', [
+            'counts'     => task_counts(),
+            'byDept'     => stats_by_department(),
+            'byAssignee' => stats_by_assignee(),
+            'overdue'    => overdue_tasks(),
+        ], 'الإحصائيات');
         break;
     }
 
@@ -208,6 +244,7 @@ switch ($r) {
         $id       = (int) ($_POST['id'] ?? 0);
         $name     = trim((string) ($_POST['name'] ?? ''));
         $username = trim((string) ($_POST['username'] ?? ''));
+        $email    = trim((string) ($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         $role     = pick((string) ($_POST['role'] ?? 'head'), ['manager', 'head'], 'head');
         $dept     = trim((string) ($_POST['department'] ?? ''));
@@ -215,6 +252,10 @@ switch ($r) {
 
         if ($name === '' || $username === '') {
             flash('الاسم واسم المستخدم مطلوبان.', 'err');
+            redirect(url('users'));
+        }
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            flash('صيغة البريد الإلكتروني غير صحيحة.', 'err');
             redirect(url('users'));
         }
         if (username_exists($username, $id)) {
@@ -225,7 +266,7 @@ switch ($r) {
             flash('كلمة المرور مطلوبة للحساب الجديد.', 'err');
             redirect(url('users'));
         }
-        $d = compact('name', 'username', 'password', 'role', 'dept', 'active');
+        $d = compact('name', 'username', 'email', 'password', 'role', 'active');
         $d['department'] = $dept;
         if ($id) {
             // منع تعطيل آخر مدير

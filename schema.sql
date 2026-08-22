@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name          VARCHAR(120) NOT NULL,
   username      VARCHAR(60)  NOT NULL,
+  email         VARCHAR(190) DEFAULT NULL,
   password_hash VARCHAR(255) NOT NULL,
   role          VARCHAR(20)  NOT NULL DEFAULT 'head',   -- manager | head
   department    VARCHAR(120) DEFAULT NULL,
@@ -15,6 +16,12 @@ CREATE TABLE IF NOT EXISTS users (
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_username (username)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- جدول تعريف بسيط لتتبّع إصدار المخطط (يستعمله نظام الترحيل)
+CREATE TABLE IF NOT EXISTS app_meta (
+  k VARCHAR(50)  NOT NULL PRIMARY KEY,
+  v VARCHAR(190) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS tasks (

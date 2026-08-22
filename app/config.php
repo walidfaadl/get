@@ -33,3 +33,8 @@ define('APP_ORG',  (string) cfg('app_org',  'TT_APP_ORG',  'TaskTrak'));
 
 // وضع التصحيح: يُظهر تفاصيل الأخطاء. أبقِه false على الإنتاج.
 define('APP_DEBUG', filter_var(cfg('debug', 'TT_DEBUG', '0'), FILTER_VALIDATE_BOOL));
+
+// إشعارات البريد
+define('MAIL_ENABLED', filter_var(cfg('mail_enabled', 'TT_MAIL_ENABLED', '1'), FILTER_VALIDATE_BOOL));
+define('MAIL_FROM', (string) cfg('mail_from', 'TT_MAIL_FROM', 'noreply@tasktrak.co'));
+define('MAIL_FROM_NAME', (string) cfg('mail_from_name', 'TT_MAIL_FROM_NAME', APP_NAME));

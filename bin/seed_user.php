@@ -3,11 +3,11 @@ declare(strict_types=1);
 /*
  * أداة سطر أوامر لإنشاء/تحديث مستخدم (تُستعمل من سكربت النشر).
  *
- *   php bin/seed_user.php <role> <name> <username> <password> [department]
+ *   php bin/seed_user.php <role> <name> <username> <password> [department] [email]
  *
  * role: manager | head
  * إن كان اسم المستخدم موجوداً يُحدَّث، وإلا يُنشأ.
- * تُنشئ الجداول تلقائياً إن لم تكن موجودة.
+ * تُنشئ الجداول وتُطبّق الترحيلات تلقائياً إن لزم.
  */
 require __DIR__ . '/../app/bootstrap.php';
 
@@ -18,12 +18,13 @@ if (PHP_SAPI !== 'cli') {
 
 $argvv = $argv ?? [];
 if (count($argvv) < 5) {
-    fwrite(STDERR, "الاستعمال: php bin/seed_user.php <role> <name> <username> <password> [department]\n");
+    fwrite(STDERR, "الاستعمال: php bin/seed_user.php <role> <name> <username> <password> [department] [email]\n");
     exit(2);
 }
 
 [$role, $name, $username, $password] = [$argvv[1], $argvv[2], $argvv[3], $argvv[4]];
 $department = $argvv[5] ?? '';
+$email = $argvv[6] ?? '';
 $role = in_array($role, ['manager', 'head'], true) ? $role : 'head';
 
 try {
@@ -34,17 +35,18 @@ try {
             db()->exec($stmt);
         }
     }
+    run_migrations();
 
     $existing = q_one('SELECT id FROM users WHERE username = ? LIMIT 1', [$username]);
     if ($existing) {
         user_update((int) $existing['id'], [
-            'name' => $name, 'username' => $username, 'password' => $password,
+            'name' => $name, 'username' => $username, 'email' => $email, 'password' => $password,
             'role' => $role, 'department' => $department, 'active' => 1,
         ]);
         fwrite(STDOUT, "updated:{$username}\n");
     } else {
         $id = user_create([
-            'name' => $name, 'username' => $username, 'password' => $password,
+            'name' => $name, 'username' => $username, 'email' => $email, 'password' => $password,
             'role' => $role, 'department' => $department,
         ]);
         fwrite(STDOUT, "created:{$username}:{$id}\n");

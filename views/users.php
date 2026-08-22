@@ -16,7 +16,8 @@
             <button class="btn-soft sm" type="button"
               onclick='fillUserForm(<?= json_encode([
                 'id' => (int) $usr['id'], 'name' => $usr['name'], 'username' => $usr['username'],
-                'role' => $usr['role'], 'department' => $usr['department'], 'active' => (int) $usr['active'],
+                'email' => $usr['email'] ?? '', 'role' => $usr['role'],
+                'department' => $usr['department'], 'active' => (int) $usr['active'],
               ], JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>تعديل</button>
             <form method="post" action="<?= e(url('user_delete')) ?>" onsubmit="return confirm('حذف هذا المستخدم؟')">
               <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $usr['id'] ?>">
@@ -35,6 +36,7 @@
       <input type="hidden" name="id" id="u_id" value="">
       <div class="field"><label>الاسم *</label><input type="text" name="name" id="u_name" required></div>
       <div class="field"><label>اسم المستخدم *</label><input type="text" name="username" id="u_username" autocomplete="off" required></div>
+      <div class="field"><label>البريد الإلكتروني <span class="hint">(للإشعارات — اختياري)</span></label><input type="email" name="email" id="u_email" autocomplete="off" placeholder="name@example.com"></div>
       <div class="field-row">
         <div class="field">
           <label>الدور</label>

@@ -31,9 +31,12 @@ if ($hasManager) {
     csrf_check();
     $name = trim((string) ($_POST['name'] ?? ''));
     $username = trim((string) ($_POST['username'] ?? ''));
+    $email = trim((string) ($_POST['email'] ?? ''));
     $password = (string) ($_POST['password'] ?? '');
     if ($name === '' || $username === '' || strlen($password) < 6) {
         $error = 'الاسم واسم المستخدم مطلوبان، وكلمة المرور ٦ أحرف على الأقل.';
+    } elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'صيغة البريد الإلكتروني غير صحيحة.';
     } else {
         try {
             // إنشاء الجداول من schema.sql
@@ -43,10 +46,11 @@ if ($hasManager) {
                     db()->exec($stmt);
                 }
             }
+            run_migrations();
             if (managers_count() === 0) {
                 user_create([
-                    'name' => $name, 'username' => $username, 'password' => $password,
-                    'role' => 'manager', 'department' => '',
+                    'name' => $name, 'username' => $username, 'email' => $email,
+                    'password' => $password, 'role' => 'manager', 'department' => '',
                 ]);
             }
             $done = true;
@@ -95,6 +99,8 @@ a.btn{display:block;text-align:center;margin-top:16px;padding:12px;border-radius
     <input type="text" name="name" required>
     <label>اسم المستخدم للدخول</label>
     <input type="text" name="username" autocomplete="off" required>
+    <label>البريد الإلكتروني (اختياري — لاستقبال إشعارات التعقيب)</label>
+    <input type="email" name="email" autocomplete="off" placeholder="name@example.com">
     <label>كلمة المرور (٦ أحرف على الأقل)</label>
     <input type="password" name="password" minlength="6" required>
     <button type="submit">تثبيت وإنشاء حساب المدير</button>
