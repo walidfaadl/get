@@ -55,7 +55,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new \
             "$SSH_USER@$SSH_HOST" \
-            "cd ~/$DEPLOY_PATH && php bin/migrate.php && touch index.php app/*.php bin/*.php && rm -f install.php"
+            "cd '$DEPLOY_PATH' && php bin/migrate.php && touch index.php app/*.php bin/*.php && rm -f install.php"
 
       - name: Verify site responds
         run: |
