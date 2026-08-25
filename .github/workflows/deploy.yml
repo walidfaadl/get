@@ -1,0 +1,64 @@
+name: Deploy to tasktrak.co
+
+# ينشر تلقائياً إلى الخادم عند كل دفع إلى main.
+#
+# الأسرار/المتغيرات:
+#   • مطلوب (Secret): مفتاح SSH الخاص. يبحث الـ workflow عن أول اسم موجود من:
+#       SSH_PRIVATE_KEY  أو  DEPLOY_KEY  أو  TASKTRAK_SSH_KEY  أو  SSH_KEY
+#     (ضع محتوى الملف tasktrak_client كاملاً في قيمة الـ Secret)
+#   • اختياري (Variables/Secrets) — لها قيم افتراضية صحيحة لخادمك:
+#       SSH_HOST=srv1.taktek.co  ·  SSH_USER=tasktrak  ·  SSH_PORT=22  ·  DEPLOY_PATH=public_html
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ vars.SSH_HOST || secrets.SSH_HOST || 'srv1.taktek.co' }}
+      SSH_USER: ${{ vars.SSH_USER || secrets.SSH_USER || 'tasktrak' }}
+      SSH_PORT: ${{ vars.SSH_PORT || secrets.SSH_PORT || '22' }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || secrets.DEPLOY_PATH || 'public_html' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare SSH key
+        env:
+          KEY: ${{ secrets.SSH_PRIVATE_KEY || secrets.DEPLOY_KEY || secrets.TASKTRAK_SSH_KEY || secrets.SSH_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::لم يُعثر على مفتاح SSH. أضِف Secret باسم SSH_PRIVATE_KEY يحتوي محتوى المفتاح الخاص (tasktrak_client)."
+            exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy files (rsync)
+        run: |
+          rsync -az \
+            --exclude='.git' --exclude='.github' --exclude='deploy' \
+            --exclude='app/config.local.php' \
+            -e "ssh -i ~/.ssh/id_deploy -p $SSH_PORT -o StrictHostKeyChecking=accept-new" \
+            ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+
+      - name: Run migrations and refresh opcache
+        run: |
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new \
+            "$SSH_USER@$SSH_HOST" \
+            "cd ~/$DEPLOY_PATH && php bin/migrate.php && touch index.php app/*.php bin/*.php && rm -f install.php"
+
+      - name: Verify site responds
+        run: |
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new \
+            "$SSH_USER@$SSH_HOST" \
+            "curl -s -o /dev/null -w 'login page: HTTP %{http_code}\n' -k --resolve tasktrak.co:443:127.0.0.1 'https://tasktrak.co/index.php?r=login' || true"
