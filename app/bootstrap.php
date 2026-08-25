@@ -17,4 +17,9 @@ require_once __DIR__ . '/models.php';
 require_once __DIR__ . '/migrate.php';
 require_once __DIR__ . '/mailer.php';
 
+// صفحات ديناميكية بمصادقة: امنع تخزينها في المتصفح (أمان + يضمن عمل صفحة عدم الاتصال)
+if (PHP_SAPI !== 'cli' && !headers_sent()) {
+    header('Cache-Control: no-store, must-revalidate');
+}
+
 start_session();

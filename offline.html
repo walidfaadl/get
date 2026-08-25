@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>غير متصل — نظام المهام</title>
+<meta name="theme-color" content="#8b1e3f">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;
+    background:linear-gradient(135deg,#6a1530,#8b1e3f,#b54a6a);padding:24px}
+  .off{background:#fff;border-radius:22px;padding:40px 34px;max-width:400px;text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.28)}
+  .off .ic{width:74px;height:74px;border-radius:20px;margin:0 auto 18px;display:flex;align-items:center;
+    justify-content:center;color:#fff;background:linear-gradient(135deg,#8b1e3f,#b54a6a)}
+  .off .ic svg{width:38px;height:38px}
+  .off h1{font-family:'Amiri',serif;color:#8b1e3f;font-size:24px;margin-bottom:8px}
+  .off p{color:#7a8597;font-size:15px;margin-bottom:22px;line-height:1.8}
+  .off button{background:linear-gradient(135deg,#8b1e3f,#b54a6a);color:#fff;border:none;border-radius:12px;
+    padding:12px 26px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+  <div class="off">
+    <div class="ic">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/><path d="M5 12.55a10.94 10.94 0 015.17-2.39"/>
+        <path d="M10.71 5.05A16 16 0 0122.58 9"/><path d="M1.42 9a15.91 15.91 0 014.7-2.88"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+      </svg>
+    </div>
+    <h1>لا يوجد اتصال بالإنترنت</h1>
+    <p>يتعذّر الوصول إلى النظام حالياً. تحقّق من اتصالك ثم أعد المحاولة.</p>
+    <button onclick="location.reload()">إعادة المحاولة</button>
+  </div>
+</body>
+</html>
