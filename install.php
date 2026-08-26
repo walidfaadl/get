@@ -63,9 +63,9 @@ if ($hasManager) {
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تثبيت نظام المهام</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;700&display=swap" rel="stylesheet">
 <style>
-body{font-family:'Tajawal',sans-serif;direction:rtl;background:#6a1530;color:#1f2937;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:20px}
+body{font-family:'Readex Pro',sans-serif;direction:rtl;background:#6a1530;color:#1f2937;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:20px}
 .box{background:#fff;border-radius:20px;padding:36px;max-width:440px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3)}
 h1{color:#8b1e3f;font-size:23px;margin-bottom:6px}
 p.sub{color:#7a8597;font-size:14px;margin-bottom:22px}

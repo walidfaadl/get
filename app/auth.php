@@ -30,6 +30,24 @@ function is_manager(): bool
     return $u !== null && $u['role'] === 'manager';
 }
 
+function is_head(): bool
+{
+    $u = current_user();
+    return $u !== null && $u['role'] === 'head';
+}
+
+function is_member(): bool
+{
+    $u = current_user();
+    return $u !== null && $u['role'] === 'member';
+}
+
+/** من يستطيع إنشاء المواعيد: المدير ورؤساء الأقسام. */
+function can_manage_appointments(): bool
+{
+    return is_manager() || is_head();
+}
+
 /** يتطلب تسجيل دخول، وإلا يحوّل لصفحة الدخول. */
 function require_login(): void
 {

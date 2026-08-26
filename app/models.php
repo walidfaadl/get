@@ -162,6 +162,15 @@ function users_heads(): array
     return q_all("SELECT * FROM users WHERE role = 'head' AND active = 1 ORDER BY name ASC");
 }
 
+/** المستخدمون القابلون لتكليفهم بمهمة: رؤساء الأقسام وأعضاء الأقسام. */
+function users_assignable(): array
+{
+    return q_all(
+        "SELECT * FROM users WHERE role IN ('head','member') AND active = 1
+         ORDER BY (role = 'head') DESC, name ASC"
+    );
+}
+
 function user_get(int $id): ?array
 {
     return q_one('SELECT * FROM users WHERE id = ? LIMIT 1', [$id]);
@@ -182,7 +191,7 @@ function user_create(array $d): int
             $d['username'],
             ($d['email'] ?? '') ?: null,
             password_hash($d['password'], PASSWORD_DEFAULT),
-            pick($d['role'] ?? 'head', ['manager', 'head'], 'head'),
+            pick($d['role'] ?? 'head', ['manager', 'head', 'member'], 'head'),
             $d['department'] ?: null,
         ]
     );
@@ -194,13 +203,13 @@ function user_update(int $id, array $d): void
     $email = ($d['email'] ?? '') ?: null;
     if (!empty($d['password'])) {
         q('UPDATE users SET name = ?, username = ?, email = ?, role = ?, department = ?, active = ?, password_hash = ? WHERE id = ?', [
-            $d['name'], $d['username'], $email, pick($d['role'] ?? 'head', ['manager', 'head'], 'head'),
+            $d['name'], $d['username'], $email, pick($d['role'] ?? 'head', ['manager', 'head', 'member'], 'head'),
             $d['department'] ?: null, (int) ($d['active'] ?? 1),
             password_hash($d['password'], PASSWORD_DEFAULT), $id,
         ]);
     } else {
         q('UPDATE users SET name = ?, username = ?, email = ?, role = ?, department = ?, active = ? WHERE id = ?', [
-            $d['name'], $d['username'], $email, pick($d['role'] ?? 'head', ['manager', 'head'], 'head'),
+            $d['name'], $d['username'], $email, pick($d['role'] ?? 'head', ['manager', 'head', 'member'], 'head'),
             $d['department'] ?: null, (int) ($d['active'] ?? 1), $id,
         ]);
     }
@@ -233,11 +242,26 @@ function task_in_scope(array $task, array $user): bool
     if (($user['role'] ?? '') === 'manager') {
         return true;
     }
+    // المسندة إليه شخصياً: يراها مدير القسم وعضو القسم
     if ((int) ($task['assigned_to'] ?? 0) === (int) ($user['id'] ?? -1)) {
         return true;
     }
-    $dep = trim((string) ($user['department'] ?? ''));
-    return $dep !== '' && trim((string) ($task['department'] ?? '')) === $dep;
+    // مدير القسم فقط يرى مهام قسمه؛ عضو القسم يرى المسندة إليه فقط
+    if (($user['role'] ?? '') === 'head') {
+        $dep = trim((string) ($user['department'] ?? ''));
+        return $dep !== '' && trim((string) ($task['department'] ?? '')) === $dep;
+    }
+    return false;
+}
+
+/**
+ * بناء نطاق تصفية المهام حسب دور المستخدم (للقائمة والإحصائيات).
+ * مدير القسم: قسمه + المسندة إليه. عضو القسم: المسندة إليه فقط.
+ */
+function scope_for_user(array $user): array
+{
+    $dep = ($user['role'] ?? '') === 'head' ? trim((string) ($user['department'] ?? '')) : '';
+    return ['user_id' => (int) $user['id'], 'department' => $dep];
 }
 
 /* ---------- إحصائيات (للمدير) ---------- */
@@ -260,14 +284,14 @@ function stats_by_department(): array
 function stats_by_assignee(): array
 {
     return q_all(
-        "SELECT u.name, u.department,
+        "SELECT u.name, u.department, u.role,
                 COUNT(t.id) total,
                 SUM(t.status='تمت')  AS done,
                 SUM(t.status='لم تتم') AS fail,
                 SUM(t.status IN ('جديدة','قيد التنفيذ')) AS open_
          FROM users u
          LEFT JOIN tasks t ON t.assigned_to = u.id
-         WHERE u.role = 'head' AND u.active = 1
+         WHERE u.role IN ('head','member') AND u.active = 1
          GROUP BY u.id
          ORDER BY total DESC, u.name ASC"
     );
@@ -285,4 +309,93 @@ function overdue_tasks(): array
            AND t.status NOT IN ('تمت','لم تتم')
          ORDER BY t.due_date ASC"
     );
+}
+
+/* ---------- المواعيد ---------- */
+
+/**
+ * قائمة المواعيد حسب المستخدم.
+ * المدير يرى الكل؛ رئيس القسم يرى ما أنشأه أو ما شُورك فيه.
+ */
+function appointments_for(array $user): array
+{
+    $base = "SELECT a.*, c.name AS creator_name, s.name AS shared_name
+             FROM appointments a
+             LEFT JOIN users c ON c.id = a.created_by
+             LEFT JOIN users s ON s.id = a.shared_with";
+    if (($user['role'] ?? '') === 'manager') {
+        return q_all("$base ORDER BY a.starts_at ASC");
+    }
+    return q_all(
+        "$base WHERE a.created_by = ? OR a.shared_with = ? ORDER BY a.starts_at ASC",
+        [(int) $user['id'], (int) $user['id']]
+    );
+}
+
+function appointment_get(int $id): ?array
+{
+    return q_one(
+        "SELECT a.*, c.name AS creator_name, s.name AS shared_name
+         FROM appointments a
+         LEFT JOIN users c ON c.id = a.created_by
+         LEFT JOIN users s ON s.id = a.shared_with
+         WHERE a.id = ? LIMIT 1",
+        [$id]
+    );
+}
+
+function appointment_create(array $d): int
+{
+    q(
+        'INSERT INTO appointments (subject, with_whom, starts_at, location, notes, created_by, shared_with)
+         VALUES (?,?,?,?,?,?,?)',
+        [
+            $d['subject'],
+            $d['with_whom'] ?: null,
+            $d['starts_at'],
+            $d['location'] ?: null,
+            $d['notes'] ?: null,
+            $d['created_by'] ?? null,
+            $d['shared_with'] ?: null,
+        ]
+    );
+    return (int) db()->lastInsertId();
+}
+
+function appointment_update(int $id, array $d): void
+{
+    q(
+        'UPDATE appointments SET subject = ?, with_whom = ?, starts_at = ?, location = ?, notes = ?, shared_with = ?
+         WHERE id = ?',
+        [
+            $d['subject'],
+            $d['with_whom'] ?: null,
+            $d['starts_at'],
+            $d['location'] ?: null,
+            $d['notes'] ?: null,
+            $d['shared_with'] ?: null,
+            $id,
+        ]
+    );
+}
+
+function appointment_delete(int $id): void
+{
+    q('DELETE FROM appointments WHERE id = ?', [$id]);
+}
+
+/** هل يستطيع المستخدم تعديل/حذف الموعد؟ المدير أو منشئ الموعد. */
+function appointment_can_edit(array $appt, array $user): bool
+{
+    return ($user['role'] ?? '') === 'manager' || (int) ($appt['created_by'] ?? 0) === (int) $user['id'];
+}
+
+/** هل يستطيع المستخدم رؤية الموعد؟ */
+function appointment_in_scope(array $appt, array $user): bool
+{
+    if (($user['role'] ?? '') === 'manager') {
+        return true;
+    }
+    $uid = (int) $user['id'];
+    return (int) ($appt['created_by'] ?? 0) === $uid || (int) ($appt['shared_with'] ?? 0) === $uid;
 }

@@ -1,6 +1,14 @@
-<?php /** @var ?array $task @var array $heads */
+<?php /** @var ?array $task @var array $assignable */
 $t = $task ?? [];
 $val = fn(string $k, $d = '') => e((string) ($t[$k] ?? $d));
+$assignable = $assignable ?? [];
+$heads   = array_filter($assignable, fn($u) => $u['role'] === 'head');
+$members = array_filter($assignable, fn($u) => $u['role'] === 'member');
+$optRow = function ($u) use ($t) {
+    $sel = (int) ($t['assigned_to'] ?? 0) === (int) $u['id'] ? 'selected' : '';
+    $dep = $u['department'] ? ' (' . e($u['department']) . ')' : '';
+    return '<option value="' . (int) $u['id'] . '" ' . $sel . '>' . e($u['name']) . $dep . '</option>';
+};
 ?>
 <div class="card form-card">
   <form method="post" action="<?= e(url('save')) ?>">
@@ -23,14 +31,19 @@ $val = fn(string $k, $d = '') => e((string) ($t[$k] ?? $d));
         <input type="text" name="department" value="<?= $val('department') ?>" placeholder="مثال: قسم البرامج">
       </div>
       <div class="field">
-        <label>إسناد إلى مدير قسم</label>
+        <label>التكليف إلى</label>
         <select name="assigned_to">
           <option value="">— بدون إسناد محدّد —</option>
-          <?php foreach ($heads as $h): ?>
-            <option value="<?= (int) $h['id'] ?>" <?= (int) ($t['assigned_to'] ?? 0) === (int) $h['id'] ? 'selected' : '' ?>>
-              <?= e($h['name']) ?><?= $h['department'] ? ' (' . e($h['department']) . ')' : '' ?>
-            </option>
-          <?php endforeach; ?>
+          <?php if ($heads): ?>
+            <optgroup label="رؤساء الأقسام">
+              <?php foreach ($heads as $h) { echo $optRow($h); } ?>
+            </optgroup>
+          <?php endif; ?>
+          <?php if ($members): ?>
+            <optgroup label="أعضاء الأقسام">
+              <?php foreach ($members as $mbr) { echo $optRow($mbr); } ?>
+            </optgroup>
+          <?php endif; ?>
         </select>
       </div>
     </div>

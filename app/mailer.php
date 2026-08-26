@@ -114,3 +114,39 @@ function notify_task_replied(int $taskId): void
 
     send_mail($mgr['email'], 'تعقيب على مهمة: ' . $t['title'] . ' (' . $t['status'] . ')', implode("\n", $lines));
 }
+
+/** إشعار رئيس القسم بمشاركته في موعد. */
+function notify_appointment_shared(int $apptId, int $headUserId): void
+{
+    $a = appointment_get($apptId);
+    $h = user_get($headUserId);
+    if (!$a || !$h || empty($h['email'])) {
+        return;
+    }
+    $link = absolute_url('appointments');
+    $lines = [
+        'مرحباً ' . $h['name'] . '،',
+        '',
+        'تمت دعوتك للمشاركة في موعد عبر ' . APP_NAME . ':',
+        '',
+        'الموضوع: ' . $a['subject'],
+        'التاريخ والوقت: ' . fmt_dt($a['starts_at']),
+    ];
+    if (!empty($a['with_whom'])) {
+        $lines[] = 'مع: ' . $a['with_whom'];
+    }
+    if (!empty($a['location'])) {
+        $lines[] = 'المكان: ' . $a['location'];
+    }
+    if (!empty($a['notes'])) {
+        $lines[] = '';
+        $lines[] = 'ملاحظات: ' . $a['notes'];
+    }
+    $lines[] = '';
+    $lines[] = 'لعرض المواعيد:';
+    $lines[] = $link;
+    $lines[] = '';
+    $lines[] = '— ' . APP_NAME;
+
+    send_mail($h['email'], 'موعد جديد: ' . $a['subject'], implode("\n", $lines));
+}

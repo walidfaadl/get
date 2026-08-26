@@ -42,6 +42,7 @@
           <label>الدور</label>
           <select name="role" id="u_role">
             <option value="head">مدير قسم</option>
+            <option value="member">عضو قسم</option>
             <option value="manager">مدير</option>
           </select>
         </div>

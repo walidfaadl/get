@@ -6,7 +6,7 @@ const PRIORITIES = ['عالية', 'متوسطة', 'منخفضة'];
 const STATUSES   = ['جديدة', 'قيد التنفيذ', 'تمت', 'لم تتم'];
 // حالات يستطيع مدير القسم ضبطها كتعقيب
 const REPLY_STATUSES = ['قيد التنفيذ', 'تمت', 'لم تتم'];
-const ROLES = ['manager' => 'المدير', 'head' => 'مدير القسم'];
+const ROLES = ['manager' => 'المدير', 'head' => 'مدير القسم', 'member' => 'عضو قسم'];
 
 /** ترميز آمن للإخراج داخل HTML. */
 function e(?string $s): string

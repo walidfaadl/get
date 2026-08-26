@@ -20,7 +20,7 @@ $f = flash();
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -34,6 +34,10 @@ $f = flash();
     <nav class="sb-nav">
       <a href="<?= e(url('tasks')) ?>" class="<?= $active === 'tasks' || $active === 'task' ? 'active' : '' ?>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>المهام</a>
+      <?php if (can_manage_appointments()): ?>
+      <a href="<?= e(url('appointments')) ?>" class="<?= in_array($active, ['appointments', 'appt_new', 'appt_edit'], true) ? 'active' : '' ?>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>المواعيد</a>
+      <?php endif; ?>
       <?php if (is_manager()): ?>
       <a href="<?= e(url('new')) ?>" class="<?= in_array($active, ['new', 'edit'], true) ? 'active' : '' ?>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>مهمة جديدة</a>
@@ -61,6 +65,10 @@ $f = flash();
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <h1><?= e($__title) ?></h1>
+      <a class="topbar-logout" href="<?= e(url('logout')) ?>" title="تسجيل الخروج">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>خروج</span>
+      </a>
     </header>
     <div class="content">
       <?php if ($f): ?><div class="flash <?= $f['type'] === 'err' ? 'flash-err' : 'flash-ok' ?>"><?= e($f['msg']) ?></div><?php endif; ?>

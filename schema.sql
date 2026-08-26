@@ -48,6 +48,23 @@ CREATE TABLE IF NOT EXISTS tasks (
   CONSTRAINT fk_task_assignee FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS appointments (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  subject     VARCHAR(200) NOT NULL,
+  with_whom   VARCHAR(200) DEFAULT NULL,
+  starts_at   DATETIME     NOT NULL,
+  location    VARCHAR(200) DEFAULT NULL,
+  notes       TEXT         DEFAULT NULL,
+  created_by  INT UNSIGNED DEFAULT NULL,
+  shared_with INT UNSIGNED DEFAULT NULL,
+  created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_starts (starts_at),
+  CONSTRAINT fk_appt_creator FOREIGN KEY (created_by)  REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_appt_shared  FOREIGN KEY (shared_with) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS task_comments (
   id         INT UNSIGNED NOT NULL AUTO_INCREMENT,
   task_id    INT UNSIGNED NOT NULL,

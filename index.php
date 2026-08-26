@@ -61,7 +61,7 @@ switch ($r) {
         }
         $scope = null;
         if (!is_manager()) {
-            $scope = ['user_id' => $me['id'], 'department' => $me['department']];
+            $scope = scope_for_user($me);
             $filter['assignee_scope'] = $scope;
         }
         render('tasks_list', [
@@ -106,8 +106,8 @@ switch ($r) {
             }
         }
         render('task_form', [
-            'task'  => $task,
-            'heads' => users_heads(),
+            'task'       => $task,
+            'assignable' => users_assignable(),
         ], $task ? 'تعديل مهمة' : 'مهمة جديدة');
         break;
     }
@@ -225,6 +225,93 @@ switch ($r) {
             'byAssignee' => stats_by_assignee(),
             'overdue'    => overdue_tasks(),
         ], 'الإحصائيات');
+        break;
+    }
+
+    /* ===== المواعيد (المدير + رؤساء الأقسام) ===== */
+    case 'appointments': {
+        if (!can_manage_appointments()) {
+            redirect(url('tasks'));
+        }
+        render('appointments', ['appointments' => appointments_for($me)], 'المواعيد');
+        break;
+    }
+
+    case 'appt_new':
+    case 'appt_edit': {
+        if (!can_manage_appointments()) {
+            redirect(url('tasks'));
+        }
+        $appt = null;
+        if ($r === 'appt_edit') {
+            $appt = appointment_get((int) ($_GET['id'] ?? 0));
+            if (!$appt || !appointment_can_edit($appt, $me)) {
+                redirect(url('appointments'));
+            }
+        }
+        render('appt_form', [
+            'appt'  => $appt,
+            'heads' => users_heads(),
+        ], $appt ? 'تعديل موعد' : 'موعد جديد');
+        break;
+    }
+
+    case 'appt_save': {
+        if (!can_manage_appointments() || !$isPost) {
+            redirect(url('appointments'));
+        }
+        csrf_check();
+        $id   = (int) ($_POST['id'] ?? 0);
+        $data = [
+            'subject'     => trim((string) ($_POST['subject'] ?? '')),
+            'with_whom'   => trim((string) ($_POST['with_whom'] ?? '')),
+            'starts_at'   => trim((string) ($_POST['starts_at'] ?? '')),
+            'location'    => trim((string) ($_POST['location'] ?? '')),
+            'notes'       => trim((string) ($_POST['notes'] ?? '')),
+            'shared_with' => (int) ($_POST['shared_with'] ?? 0) ?: null,
+        ];
+        // datetime-local يصل بصيغة 2026-01-01T09:00 — نحوّلها إلى صيغة SQL
+        $data['starts_at'] = str_replace('T', ' ', $data['starts_at']);
+        if ($data['subject'] === '' || $data['starts_at'] === '') {
+            flash('الموضوع والتاريخ/الوقت مطلوبان.', 'err');
+            redirect($id ? url('appt_edit', ['id' => $id]) : url('appt_new'));
+        }
+        if (strlen($data['starts_at']) === 16) {
+            $data['starts_at'] .= ':00';
+        }
+        if ($id) {
+            $appt = appointment_get($id);
+            if (!$appt || !appointment_can_edit($appt, $me)) {
+                redirect(url('appointments'));
+            }
+            $before = (int) ($appt['shared_with'] ?? 0);
+            appointment_update($id, $data);
+            if ($data['shared_with'] && $data['shared_with'] !== $before) {
+                notify_appointment_shared($id, (int) $data['shared_with']);
+            }
+            flash('تم تحديث الموعد.');
+        } else {
+            $data['created_by'] = $me['id'];
+            $id = appointment_create($data);
+            if ($data['shared_with']) {
+                notify_appointment_shared($id, (int) $data['shared_with']);
+            }
+            flash('تمت إضافة الموعد.');
+        }
+        redirect(url('appointments'));
+        break;
+    }
+
+    case 'appt_delete': {
+        if (can_manage_appointments() && $isPost) {
+            csrf_check();
+            $appt = appointment_get((int) ($_POST['id'] ?? 0));
+            if ($appt && appointment_can_edit($appt, $me)) {
+                appointment_delete((int) $appt['id']);
+                flash('تم حذف الموعد.');
+            }
+        }
+        redirect(url('appointments'));
         break;
     }
 

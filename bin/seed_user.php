@@ -25,7 +25,7 @@ if (count($argvv) < 5) {
 [$role, $name, $username, $password] = [$argvv[1], $argvv[2], $argvv[3], $argvv[4]];
 $department = $argvv[5] ?? '';
 $email = $argvv[6] ?? '';
-$role = in_array($role, ['manager', 'head'], true) ? $role : 'head';
+$role = in_array($role, ['manager', 'head', 'member'], true) ? $role : 'head';
 
 try {
     // ضمان وجود الجداول

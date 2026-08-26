@@ -7,7 +7,7 @@ declare(strict_types=1);
  */
 
 if (!defined('SCHEMA_VERSION')) {
-    define('SCHEMA_VERSION', 2); // 1: الجداول الأساسية · 2: عمود البريد
+    define('SCHEMA_VERSION', 3); // 1: الأساس · 2: البريد · 3: المواعيد
 }
 
 /** الترحيلات المطلوبة عند كل إصدار. */
@@ -16,6 +16,24 @@ function migrations_map(): array
     return [
         2 => [
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(190) NULL',
+        ],
+        3 => [
+            "CREATE TABLE IF NOT EXISTS appointments (
+                id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                subject     VARCHAR(200) NOT NULL,
+                with_whom   VARCHAR(200) DEFAULT NULL,
+                starts_at   DATETIME     NOT NULL,
+                location    VARCHAR(200) DEFAULT NULL,
+                notes       TEXT         DEFAULT NULL,
+                created_by  INT UNSIGNED DEFAULT NULL,
+                shared_with INT UNSIGNED DEFAULT NULL,
+                created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_starts (starts_at),
+                CONSTRAINT fk_appt_creator FOREIGN KEY (created_by)  REFERENCES users(id) ON DELETE SET NULL,
+                CONSTRAINT fk_appt_shared  FOREIGN KEY (shared_with) REFERENCES users(id) ON DELETE SET NULL
+             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
         ],
     ];
 }
