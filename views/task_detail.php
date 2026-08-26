@@ -43,16 +43,16 @@ $answered = $task['replied_at'] && in_array($task['status'], ['تمت', 'لم ت
 
 <!-- تعقيب مدير القسم -->
 <div class="card">
-  <h3 class="card-h">تعقيب مدير القسم</h3>
+  <h3 class="card-h">التعقيب على المهمة</h3>
   <?php if (is_manager()): ?>
     <?php if ($answered): ?>
       <div class="reply-box answered <?= $task['status'] === 'لم تتم' ? 'neg' : '' ?>">
         <span class="badge s-<?= e(status_slug($task['status'])) ?>"><?= e($task['status']) ?></span>
         <div class="txt"><?= $task['reply'] ? nl2br(e($task['reply'])) : '<span class="muted">— بدون ملاحظات —</span>' ?></div>
-        <div class="reply-meta">⏱ <?= e($task['replied_by'] ?: 'مدير القسم') ?> • <?= e(fmt_dt($task['replied_at'])) ?></div>
+        <div class="reply-meta">⏱ <?= e($task['replied_by'] ?: 'المُكلَّف') ?> • <?= e(fmt_dt($task['replied_at'])) ?></div>
       </div>
     <?php else: ?>
-      <div class="reply-box"><span class="muted">بانتظار تعقيب مدير القسم على هذه المهمة.</span></div>
+      <div class="reply-box"><span class="muted">بانتظار تعقيب المُكلَّف على هذه المهمة.</span></div>
     <?php endif; ?>
   <?php else: ?>
     <form method="post" action="<?= e(url('reply')) ?>" class="reply-form">

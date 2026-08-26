@@ -21,7 +21,7 @@ $f = flash();
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=<?= e(ASSET_VER) ?>">
 </head>
 <body>
 <?php if ($u): ?>
@@ -32,10 +32,10 @@ $f = flash();
       <div class="sb-title"><h2><?= e(APP_NAME) ?></h2><p><?= e(APP_ORG) ?></p></div>
     </div>
     <nav class="sb-nav">
-      <a href="<?= e(url('tasks')) ?>" class="<?= $active === 'tasks' || $active === 'task' ? 'active' : '' ?>">
+      <a href="<?= e(url('tasks')) ?>" class="nv-tasks <?= $active === 'tasks' || $active === 'task' ? 'active' : '' ?>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>المهام</a>
       <?php if (can_manage_appointments()): ?>
-      <a href="<?= e(url('appointments')) ?>" class="<?= in_array($active, ['appointments', 'appt_new', 'appt_edit'], true) ? 'active' : '' ?>">
+      <a href="<?= e(url('appointments')) ?>" class="nv-appt <?= in_array($active, ['appointments', 'appt_new', 'appt_edit', 'appt'], true) ? 'active' : '' ?>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>المواعيد</a>
       <?php endif; ?>
       <?php if (is_manager()): ?>
@@ -76,7 +76,7 @@ $f = flash();
     </div>
   </main>
 </div>
-<script src="assets/app.js"></script>
+<script src="assets/app.js?v=<?= e(ASSET_VER) ?>"></script>
 <?php else: ?>
 <?= $content ?>
 <?php endif; ?>

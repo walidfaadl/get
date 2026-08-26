@@ -233,7 +233,33 @@ switch ($r) {
         if (!can_manage_appointments()) {
             redirect(url('tasks'));
         }
-        render('appointments', ['appointments' => appointments_for($me)], 'المواعيد');
+        $view = pick((string) ($_GET['view'] ?? 'upcoming'), ['upcoming', 'past', 'all'], 'upcoming');
+        $all  = appointments_for($me);
+        $now  = time();
+        $upcoming = array_values(array_filter($all, fn($a) => strtotime($a['starts_at']) >= $now));
+        $past     = array_values(array_filter($all, fn($a) => strtotime($a['starts_at']) < $now));
+        // السابقة تُعرض الأحدث أولاً
+        $past = array_reverse($past);
+        $items = $view === 'past' ? $past : ($view === 'all' ? $all : $upcoming);
+        render('appointments', [
+            'appointments' => $items,
+            'view'         => $view,
+            'counts'       => ['all' => count($all), 'upcoming' => count($upcoming), 'past' => count($past)],
+        ], 'المواعيد');
+        break;
+    }
+
+    case 'appt': {
+        if (!can_manage_appointments()) {
+            redirect(url('tasks'));
+        }
+        $appt = appointment_get((int) ($_GET['id'] ?? 0));
+        if (!$appt || !appointment_in_scope($appt, $me)) {
+            http_response_code($appt ? 403 : 404);
+            render('message', ['heading' => 'غير متاح', 'text' => 'الموعد غير موجود أو خارج نطاقك.'], 'خطأ');
+            break;
+        }
+        render('appt_detail', ['appt' => $appt], $appt['subject']);
         break;
     }
 
