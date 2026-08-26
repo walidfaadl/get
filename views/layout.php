@@ -65,6 +65,11 @@ $f = flash();
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
       <h1><?= e($__title) ?></h1>
+      <?php $__unread = notifs_unread((int) $u['id']); ?>
+      <a class="topbar-bell" href="<?= e(url('notifications')) ?>" title="التنبيهات">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <?php if ($__unread > 0): ?><span class="bell-badge"><?= $__unread > 99 ? '99+' : (int) $__unread ?></span><?php endif; ?>
+      </a>
       <a class="topbar-logout" href="<?= e(url('logout')) ?>" title="تسجيل الخروج">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span>خروج</span>

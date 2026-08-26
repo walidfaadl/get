@@ -109,6 +109,12 @@ function task_reply(int $id, string $status, string $reply, string $repliedBy): 
     );
 }
 
+/** تعديل المدير لحالة المهمة مباشرةً (أي من الحالات الأربع). */
+function task_set_status(int $id, string $status): void
+{
+    q('UPDATE tasks SET status = ? WHERE id = ?', [pick($status, STATUSES, 'جديدة'), $id]);
+}
+
 function task_delete(int $id): void
 {
     q('DELETE FROM tasks WHERE id = ?', [$id]);
@@ -379,6 +385,14 @@ function appointment_update(int $id, array $d): void
     );
 }
 
+/** تحديث حالة الموعد (تم/تأجّل/لم يُعقد/مجدول) مع تاريخ تأجيل اختياري. */
+function appointment_set_status(int $id, string $status, ?string $postponedTo): void
+{
+    $status = pick($status, APPT_STATUSES, 'مجدول');
+    $pt = ($status === 'تأجّل' && $postponedTo) ? $postponedTo : null;
+    q('UPDATE appointments SET status = ?, postponed_to = ? WHERE id = ?', [$status, $pt, $id]);
+}
+
 function appointment_delete(int $id): void
 {
     q('DELETE FROM appointments WHERE id = ?', [$id]);
@@ -398,4 +412,37 @@ function appointment_in_scope(array $appt, array $user): bool
     }
     $uid = (int) $user['id'];
     return (int) ($appt['created_by'] ?? 0) === $uid || (int) ($appt['shared_with'] ?? 0) === $uid;
+}
+
+/* ---------- التنبيهات داخل النظام ---------- */
+
+function notif_add(int $userId, string $type, string $title, string $body, string $route, ?int $refId): void
+{
+    if ($userId <= 0) {
+        return;
+    }
+    q(
+        'INSERT INTO notifications (user_id, type, title, body, route, ref_id) VALUES (?,?,?,?,?,?)',
+        [$userId, $type, $title, ($body !== '' ? mb_substr($body, 0, 290) : null), $route, $refId]
+    );
+}
+
+function notifs_for(int $userId, int $limit = 30): array
+{
+    $limit = max(1, min(100, $limit));
+    return q_all(
+        "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT $limit",
+        [$userId]
+    );
+}
+
+function notifs_unread(int $userId): int
+{
+    $r = q_one('SELECT COUNT(*) c FROM notifications WHERE user_id = ? AND is_read = 0', [$userId]);
+    return (int) ($r['c'] ?? 0);
+}
+
+function notifs_mark_all_read(int $userId): void
+{
+    q('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0', [$userId]);
 }

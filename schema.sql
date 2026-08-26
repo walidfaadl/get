@@ -49,20 +49,37 @@ CREATE TABLE IF NOT EXISTS tasks (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS appointments (
-  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  subject     VARCHAR(200) NOT NULL,
-  with_whom   VARCHAR(200) DEFAULT NULL,
-  starts_at   DATETIME     NOT NULL,
-  location    VARCHAR(200) DEFAULT NULL,
-  notes       TEXT         DEFAULT NULL,
-  created_by  INT UNSIGNED DEFAULT NULL,
-  shared_with INT UNSIGNED DEFAULT NULL,
-  created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  id           INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  subject      VARCHAR(200) NOT NULL,
+  with_whom    VARCHAR(200) DEFAULT NULL,
+  starts_at    DATETIME     NOT NULL,
+  location     VARCHAR(200) DEFAULT NULL,
+  notes        TEXT         DEFAULT NULL,
+  status       VARCHAR(20)  NOT NULL DEFAULT 'مجدول',
+  postponed_to DATETIME     DEFAULT NULL,
+  created_by   INT UNSIGNED DEFAULT NULL,
+  shared_with  INT UNSIGNED DEFAULT NULL,
+  created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_starts (starts_at),
   CONSTRAINT fk_appt_creator FOREIGN KEY (created_by)  REFERENCES users(id) ON DELETE SET NULL,
   CONSTRAINT fk_appt_shared  FOREIGN KEY (shared_with) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id    INT UNSIGNED NOT NULL,
+  type       VARCHAR(20)  NOT NULL,
+  title      VARCHAR(200) NOT NULL,
+  body       VARCHAR(300) DEFAULT NULL,
+  route      VARCHAR(30)  NOT NULL,
+  ref_id     INT UNSIGNED DEFAULT NULL,
+  is_read    TINYINT(1)   NOT NULL DEFAULT 0,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_user_read (user_id, is_read),
+  CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS task_comments (

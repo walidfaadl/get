@@ -28,11 +28,46 @@ $full = $ts ? ($dayName[(int) date('w', $ts)] . ' ' . (int) date('j', $ts) . ' '
   <div class="appt-hero-body">
     <div class="appt-hero-top">
       <h2><?= e($appt['subject']) ?></h2>
-      <span class="appt-pill <?= $past ? 'past' : 'up' ?>"><?= $past ? 'منتهٍ' : 'قادم' ?></span>
+      <span class="ast ast-<?= e(appt_status_slug($appt['status'] ?? 'مجدول')) ?>"><?= e($appt['status'] ?? 'مجدول') ?></span>
     </div>
     <div class="appt-hero-when"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><?= e($full) ?></div>
+    <?php if (($appt['status'] ?? '') === 'تأجّل' && !empty($appt['postponed_to'])): ?>
+      <div class="appt-hero-postponed">↪ أُجّل إلى: <?= e(fmt_dt($appt['postponed_to'])) ?></div>
+    <?php endif; ?>
   </div>
 </div>
+
+<?php if ($canEdit): ?>
+<div class="card">
+  <h3 class="card-h">حالة الموعد</h3>
+  <form method="post" action="<?= e(url('appt_status')) ?>" class="status-set">
+    <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $appt['id'] ?>">
+    <div class="status-choices" id="apptStatusChoices">
+      <?php foreach (APPT_STATUSES as $s): ?>
+        <label class="<?= ($appt['status'] ?? 'مجدول') === $s ? 'sel' : '' ?>" data-s="<?= e($s) ?>">
+          <input type="radio" name="status" value="<?= e($s) ?>" <?= ($appt['status'] ?? 'مجدول') === $s ? 'checked' : '' ?>><?= e($s) ?>
+        </label>
+      <?php endforeach; ?>
+    </div>
+    <div class="field postpone-field" id="postponeField" style="<?= ($appt['status'] ?? '') === 'تأجّل' ? '' : 'display:none' ?>">
+      <label>تاريخ التأجيل <span class="hint">(اختياري — اتركه فارغاً إن لم يُحدَّد بعد)</span></label>
+      <input type="datetime-local" name="postponed_to" value="<?= e(!empty($appt['postponed_to']) ? date('Y-m-d\TH:i', strtotime($appt['postponed_to'])) : '') ?>">
+    </div>
+    <button type="submit" class="btn-primary">حفظ الحالة</button>
+  </form>
+</div>
+<script>
+(function(){
+  var box = document.getElementById('apptStatusChoices');
+  var field = document.getElementById('postponeField');
+  if (!box || !field) return;
+  box.addEventListener('click', function(e){
+    var lbl = e.target.closest('label'); if(!lbl) return;
+    field.style.display = (lbl.getAttribute('data-s') === 'تأجّل') ? '' : 'none';
+  });
+})();
+</script>
+<?php endif; ?>
 
 <div class="card">
   <div class="detail-grid">

@@ -54,6 +54,19 @@ $answered = $task['replied_at'] && in_array($task['status'], ['تمت', 'لم ت
     <?php else: ?>
       <div class="reply-box"><span class="muted">بانتظار تعقيب المُكلَّف على هذه المهمة.</span></div>
     <?php endif; ?>
+
+    <form method="post" action="<?= e(url('task_status')) ?>" class="status-set">
+      <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $task['id'] ?>">
+      <div class="status-set-label">تعديل الحالة (المدير):</div>
+      <div class="status-choices">
+        <?php foreach (STATUSES as $s): ?>
+          <label class="<?= $task['status'] === $s ? 'sel' : '' ?>">
+            <input type="radio" name="status" value="<?= e($s) ?>" <?= $task['status'] === $s ? 'checked' : '' ?>><?= e($s) ?>
+          </label>
+        <?php endforeach; ?>
+      </div>
+      <button type="submit" class="btn-primary">حفظ الحالة</button>
+    </form>
   <?php else: ?>
     <form method="post" action="<?= e(url('reply')) ?>" class="reply-form">
       <?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $task['id'] ?>">

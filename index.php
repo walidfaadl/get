@@ -136,9 +136,10 @@ switch ($r) {
         if ($id) {
             $before = task_get($id);
             task_update($id, $data);
-            // إشعار عند إسناد المهمة إلى مدير قسم جديد
+            // إشعار عند إسناد المهمة إلى مكلَّف جديد
             if ($data['assigned_to'] && (int) ($before['assigned_to'] ?? 0) !== (int) $data['assigned_to']) {
                 notify_task_assigned($id, (int) $data['assigned_to']);
+                notif_add((int) $data['assigned_to'], 'task', 'مهمة مسندة إليك', $data['title'], 'task', $id);
             }
             flash('تم تحديث المهمة.');
             redirect(url('task', ['id' => $id]));
@@ -147,6 +148,7 @@ switch ($r) {
             $newId = task_create($data);
             if ($data['assigned_to']) {
                 notify_task_assigned($newId, (int) $data['assigned_to']);
+                notif_add((int) $data['assigned_to'], 'task', 'مهمة جديدة مسندة إليك', $data['title'], 'task', $newId);
             }
             flash('تمت إضافة المهمة.');
             redirect(url('task', ['id' => $newId]));
@@ -191,6 +193,25 @@ switch ($r) {
         task_reply($id, $status, $reply, $me['name']);
         notify_task_replied($id);
         flash('تم حفظ التعقيب.');
+        redirect(url('task', ['id' => $id]));
+        break;
+    }
+
+    /* ===== المدير يعدّل حالة المهمة مباشرةً ===== */
+    case 'task_status': {
+        require_manager();
+        if (!$isPost) {
+            redirect(url('tasks'));
+        }
+        csrf_check();
+        $id     = (int) ($_POST['id'] ?? 0);
+        $status = (string) ($_POST['status'] ?? '');
+        if (!task_get($id) || !in_array($status, STATUSES, true)) {
+            flash('حالة غير صالحة.', 'err');
+            redirect(url('task', ['id' => $id]));
+        }
+        task_set_status($id, $status);
+        flash('تم تحديث حالة المهمة.');
         redirect(url('task', ['id' => $id]));
         break;
     }
@@ -314,6 +335,7 @@ switch ($r) {
             appointment_update($id, $data);
             if ($data['shared_with'] && $data['shared_with'] !== $before) {
                 notify_appointment_shared($id, (int) $data['shared_with']);
+                notif_add((int) $data['shared_with'], 'appointment', 'موعد بمشاركتك', $data['subject'], 'appt', $id);
             }
             flash('تم تحديث الموعد.');
         } else {
@@ -321,6 +343,7 @@ switch ($r) {
             $id = appointment_create($data);
             if ($data['shared_with']) {
                 notify_appointment_shared($id, (int) $data['shared_with']);
+                notif_add((int) $data['shared_with'], 'appointment', 'موعد جديد بمشاركتك', $data['subject'], 'appt', $id);
             }
             flash('تمت إضافة الموعد.');
         }
@@ -338,6 +361,40 @@ switch ($r) {
             }
         }
         redirect(url('appointments'));
+        break;
+    }
+
+    case 'appt_status': {
+        if (!can_manage_appointments() || !$isPost) {
+            redirect(url('appointments'));
+        }
+        csrf_check();
+        $id   = (int) ($_POST['id'] ?? 0);
+        $appt = appointment_get($id);
+        if (!$appt || !appointment_can_edit($appt, $me)) {
+            redirect(url('appointments'));
+        }
+        $status = (string) ($_POST['status'] ?? '');
+        if (!in_array($status, APPT_STATUSES, true)) {
+            flash('حالة غير صالحة.', 'err');
+            redirect(url('appt', ['id' => $id]));
+        }
+        $pt = trim((string) ($_POST['postponed_to'] ?? ''));
+        $pt = $pt !== '' ? str_replace('T', ' ', $pt) : '';
+        if ($pt !== '' && strlen($pt) === 16) {
+            $pt .= ':00';
+        }
+        appointment_set_status($id, $status, $pt ?: null);
+        flash('تم تحديث حالة الموعد.');
+        redirect(url('appt', ['id' => $id]));
+        break;
+    }
+
+    /* ===== التنبيهات (لكل المستخدمين) ===== */
+    case 'notifications': {
+        $list = notifs_for((int) $me['id']);
+        notifs_mark_all_read((int) $me['id']);
+        render('notifications', ['items' => $list], 'التنبيهات');
         break;
     }
 

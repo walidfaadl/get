@@ -7,6 +7,8 @@ const STATUSES   = ['جديدة', 'قيد التنفيذ', 'تمت', 'لم تت�
 // حالات يستطيع مدير القسم ضبطها كتعقيب
 const REPLY_STATUSES = ['قيد التنفيذ', 'تمت', 'لم تتم'];
 const ROLES = ['manager' => 'المدير', 'head' => 'مدير القسم', 'member' => 'عضو قسم'];
+// حالات الموعد
+const APPT_STATUSES = ['مجدول', 'تم', 'تأجّل', 'لم يُعقد'];
 
 /** ترميز آمن للإخراج داخل HTML. */
 function e(?string $s): string
@@ -101,6 +103,12 @@ function status_slug(string $s): string
 function prio_slug(string $s): string
 {
     return ['عالية' => 'high', 'متوسطة' => 'mid', 'منخفضة' => 'low'][$s] ?? 'mid';
+}
+
+/** اسم CSS لاتيني لحالة الموعد. */
+function appt_status_slug(string $s): string
+{
+    return ['مجدول' => 'sched', 'تم' => 'done', 'تأجّل' => 'post', 'لم يُعقد' => 'noshow'][$s] ?? 'sched';
 }
 
 /** عرض قالب داخل التخطيط العام. */

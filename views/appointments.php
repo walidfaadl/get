@@ -30,11 +30,19 @@ $months = ['يناير','فبراير','مارس','أبريل','مايو','يو�
           <div class="mo"><?= $ts ? e($months[(int) date('n', $ts) - 1]) : '' ?></div>
           <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><?= $ts ? date('H:i', $ts) : '' ?></div>
         </div>
+        <?php $ast = $a['status'] ?? 'مجدول'; ?>
         <div class="appt-body">
-          <div class="appt-subject"><?= e($a['subject']) ?><?= $past ? ' <span class="appt-pill past">منتهٍ</span>' : ' <span class="appt-pill up">قادم</span>' ?></div>
+          <div class="appt-subject"><?= e($a['subject']) ?>
+            <?php if ($ast !== 'مجدول'): ?>
+              <span class="ast ast-<?= e(appt_status_slug($ast)) ?>"><?= e($ast) ?></span>
+            <?php else: ?>
+              <span class="appt-pill <?= $past ? 'past' : 'up' ?>"><?= $past ? 'منتهٍ' : 'قادم' ?></span>
+            <?php endif; ?>
+          </div>
           <div class="appt-meta">
             <?php if ($a['with_whom']): ?><span><b>مع:</b> <?= e($a['with_whom']) ?></span><?php endif; ?>
             <?php if ($a['location']): ?><span>📍 <?= e($a['location']) ?></span><?php endif; ?>
+            <?php if ($ast === 'تأجّل' && !empty($a['postponed_to'])): ?><span>↪ أُجّل إلى <?= e(fmt_date($a['postponed_to'])) ?></span><?php endif; ?>
             <span>👤 <?= e($a['creator_name'] ?: '—') ?></span>
           </div>
           <?php if ($a['shared_name']): ?><span class="appt-share">🤝 بمشاركة: <?= e($a['shared_name']) ?></span><?php endif; ?>
