@@ -398,6 +398,16 @@ function appointment_get_by_token(string $token): ?array
     );
 }
 
+/** تسجيل ردّ صاحب الموعد من الصفحة العامة (confirmed | postpone). */
+function appointment_record_response(int $id, string $status, string $note): void
+{
+    $status = in_array($status, ['confirmed', 'postpone'], true) ? $status : 'confirmed';
+    q(
+        'UPDATE appointments SET recipient_status = ?, recipient_note = ?, recipient_at = NOW() WHERE id = ?',
+        [$status, ($note !== '' ? mb_substr($note, 0, 590) : null), $id]
+    );
+}
+
 /** يضمن وجود مُعرّف مشاركة للموعد ويعيده (يولّده إن لزم). */
 function appointment_ensure_token(int $id): string
 {

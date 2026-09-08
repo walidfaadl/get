@@ -150,3 +150,33 @@ function notify_appointment_shared(int $apptId, int $headUserId): void
 
     send_mail($h['email'], 'موعد جديد: ' . $a['subject'], implode("\n", $lines));
 }
+
+/** إشعار منظّم الموعد بردّ صاحب الموعد (تأكيد/طلب تأجيل). */
+function notify_appointment_response(int $apptId): void
+{
+    $a = appointment_get($apptId);
+    if (!$a || empty($a['created_by'])) {
+        return;
+    }
+    $mgr = user_get((int) $a['created_by']);
+    if (!$mgr || empty($mgr['email'])) {
+        return;
+    }
+    $isConfirm = ($a['recipient_status'] ?? '') === 'confirmed';
+    $verb = $isConfirm ? 'أكّد استلام الموعد' : 'طلب تأجيل الموعد';
+    $link = absolute_url('appt', ['id' => $apptId]);
+    $lines = [
+        'ردّ صاحب الموعد على: ' . $a['subject'],
+        '',
+        'الردّ: ' . $verb,
+    ];
+    if (!empty($a['recipient_note'])) {
+        $lines[] = 'ملاحظة: ' . $a['recipient_note'];
+    }
+    $lines[] = '';
+    $lines[] = 'لعرض الموعد:';
+    $lines[] = $link;
+    $lines[] = '';
+    $lines[] = '— ' . APP_NAME;
+    send_mail($mgr['email'], ($isConfirm ? 'تأكيد موعد: ' : 'طلب تأجيل: ') . $a['subject'], implode("\n", $lines));
+}

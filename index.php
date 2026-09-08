@@ -50,6 +50,26 @@ if ($r === 'share') {
     exit;
 }
 
+/* ردّ صاحب الموعد من الصفحة العامة (تأكيد/طلب تأجيل) */
+if ($r === 'share_respond') {
+    $token = (string) ($_POST['t'] ?? '');
+    $appt  = appointment_get_by_token($token);
+    if ($appt && $isPost) {
+        csrf_check();
+        $action = (string) ($_POST['action'] ?? '');
+        $status = $action === 'postpone' ? 'postpone' : 'confirmed';
+        $note   = trim((string) ($_POST['note'] ?? ''));
+        appointment_record_response((int) $appt['id'], $status, $note);
+        if (!empty($appt['created_by'])) {
+            $t = $status === 'confirmed' ? 'أكّد صاحب الموعد الاستلام' : 'طلب صاحب الموعد تأجيل الموعد';
+            notif_add((int) $appt['created_by'], 'appointment', $t, $appt['subject'], 'appt', (int) $appt['id']);
+        }
+        notify_appointment_response((int) $appt['id']);
+        flash($status === 'confirmed' ? 'شكراً — تم تأكيد استلامك للموعد.' : 'تم إرسال طلب التأجيل إلى منظّم الموعد.');
+    }
+    redirect(url('share', ['t' => $token]));
+}
+
 /* ---------- تتطلب تسجيل دخول ---------- */
 require_login();
 $me = current_user();

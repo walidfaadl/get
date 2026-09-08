@@ -17,8 +17,11 @@ $ok = (bool) $appt;
 $ts = $ok ? strtotime($appt['starts_at']) : false;
 $status = $ok ? ($appt['status'] ?? 'مجدول') : '';
 $ogTitle = $ok ? $appt['subject'] : 'رابط غير صالح';
-$ogDesc  = $ok ? trim(($fmtFull($appt['starts_at'])) . ($appt['with_whom'] ? ' • مع ' . $appt['with_whom'] : '')) : '';
+$ogDesc  = $ok ? trim(($fmtFull($appt['starts_at'])) . ($appt['with_whom'] ? ' • مع ' . $appt['with_whom'] : '')) : 'هذا الموعد غير موجود.';
 $canonical = $ok ? absolute_url('share', ['t' => $appt['share_token']]) : '';
+$origin = (is_https() ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'tasktrak.co');
+$rstatus = $ok ? ($appt['recipient_status'] ?? '') : '';
+$shareFlash = flash();
 ?><!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -31,8 +34,14 @@ $canonical = $ok ? absolute_url('share', ['t' => $appt['share_token']]) : '';
 <meta property="og:title" content="<?= e($ogTitle) ?>">
 <?php if ($ogDesc): ?><meta property="og:description" content="<?= e($ogDesc) ?>"><?php endif; ?>
 <?php if ($canonical): ?><meta property="og:url" content="<?= e($canonical) ?>"><?php endif; ?>
-<meta property="og:image" content="/assets/icons/icon-512.png">
+<meta property="og:locale" content="ar_AR">
+<meta property="og:image" content="<?= e($origin) ?>/assets/icons/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:image:alt" content="<?= e(APP_NAME) ?>">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="<?= e($ogTitle) ?>">
+<meta name="twitter:description" content="<?= e($ogDesc) ?>">
 <meta name="theme-color" content="#7B2338">
 <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,6 +84,22 @@ $canonical = $ok ? absolute_url('share', ['t' => $appt['share_token']]) : '';
   .bad{max-width:440px;text-align:center;background:var(--surface);border:.5px solid var(--line);border-radius:16px;padding:40px 26px}
   .bad h1{color:var(--brand);font-size:20px;margin:0 0 8px}
   .bad p{color:var(--soft);margin:0}
+  .flashmsg{max-width:440px;width:100%;background:var(--done-bg);color:var(--done);border-radius:12px;padding:11px 16px;font-size:14px;font-weight:600;text-align:center;margin-bottom:14px}
+  .resp{max-width:440px;width:100%;background:var(--surface);border:.5px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:14px;box-shadow:0 8px 30px rgba(28,27,25,.06)}
+  .resp h2{font-size:15px;font-weight:600;margin:0 0 12px}
+  .resp-state{border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:12px}
+  .resp-state.ok{background:var(--done-bg);color:var(--done)}
+  .resp-state.pp{background:var(--doing-bg);color:var(--doing)}
+  .resp-state .note{color:var(--ink);margin-top:6px;font-weight:400}
+  .resp-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .rbtn{flex:1;min-width:150px;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:10px;font-size:14.5px;font-weight:600;border:.5px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer}
+  .rbtn svg{width:18px;height:18px}
+  .rbtn.confirm{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+  .rbtn.postpone{color:var(--doing);border-color:color-mix(in srgb,var(--doing) 45%,transparent)}
+  .rbtn.postpone:hover{background:var(--doing-bg)}
+  .pp-form{margin-top:12px}
+  .pp-form textarea{width:100%;border:.5px solid var(--line-strong);border-radius:10px;background:var(--bg);padding:10px 12px;font-family:inherit;font-size:14px;min-height:80px;resize:vertical;box-sizing:border-box}
+  .pp-form .send{margin-top:8px;width:100%;height:44px;border:0;border-radius:10px;background:var(--doing);color:#fff;font-weight:600;font-size:14.5px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -83,6 +108,7 @@ $canonical = $ok ? absolute_url('share', ['t' => $appt['share_token']]) : '';
     <b><?= e(APP_NAME) ?></b>
   </div>
 
+  <?php if ($shareFlash): ?><div class="flashmsg"><?= e($shareFlash['msg']) ?></div><?php endif; ?>
   <?php if (!$ok): ?>
     <div class="bad">
       <h1>الرابط غير صالح</h1>
@@ -111,6 +137,39 @@ $canonical = $ok ? absolute_url('share', ['t' => $appt['share_token']]) : '';
         <?php if (!empty($appt['notes'])): ?><div class="rowline"><span class="k">ملاحظات</span><span class="v"><?= nl2br(e($appt['notes'])) ?></span></div><?php endif; ?>
       </div>
       <div class="foot">دعوة موعد — <?= e(APP_NAME) ?></div>
+    </div>
+
+    <div class="resp">
+      <h2>ردّك على الموعد</h2>
+      <?php if ($rstatus === 'confirmed'): ?>
+        <div class="resp-state ok">✓ أكّدتَ استلام هذا الموعد.<?php if (!empty($appt['recipient_at'])): ?> <span style="opacity:.7">(<?= e(fmt_dt($appt['recipient_at'])) ?>)</span><?php endif; ?></div>
+      <?php elseif ($rstatus === 'postpone'): ?>
+        <div class="resp-state pp">↪ طلبتَ تأجيل الموعد.<?php if (!empty($appt['recipient_note'])): ?><div class="note"><?= nl2br(e($appt['recipient_note'])) ?></div><?php endif; ?></div>
+      <?php endif; ?>
+
+      <div class="resp-btns">
+        <form method="post" action="index.php?r=share_respond" style="flex:1;min-width:150px">
+          <?= csrf_field() ?>
+          <input type="hidden" name="t" value="<?= e($appt['share_token']) ?>">
+          <input type="hidden" name="action" value="confirm">
+          <button type="submit" class="rbtn confirm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            تأكيد استلام الموعد
+          </button>
+        </form>
+        <button type="button" class="rbtn postpone" onclick="document.getElementById('ppForm').hidden=!document.getElementById('ppForm').hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+          طلب تأجيل
+        </button>
+      </div>
+
+      <form class="pp-form" id="ppForm" method="post" action="index.php?r=share_respond" <?= $rstatus === 'postpone' ? '' : 'hidden' ?>>
+        <?= csrf_field() ?>
+        <input type="hidden" name="t" value="<?= e($appt['share_token']) ?>">
+        <input type="hidden" name="action" value="postpone">
+        <textarea name="note" placeholder="سبب التأجيل أو ملاحظة (اختياري)"><?= e($rstatus === 'postpone' ? ($appt['recipient_note'] ?? '') : '') ?></textarea>
+        <button type="submit" class="send">إرسال طلب التأجيل</button>
+      </form>
     </div>
   <?php endif; ?>
 </body>

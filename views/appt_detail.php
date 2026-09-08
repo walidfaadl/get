@@ -38,6 +38,22 @@ $full = $ts ? ($dayName[(int) date('w', $ts)] . ' ' . (int) date('j', $ts) . ' '
   </div>
 </div>
 
+<?php $rstatus = $appt['recipient_status'] ?? ''; ?>
+<?php if ($rstatus !== ''): ?>
+<div class="card">
+  <h3 class="card-h">ردّ صاحب الموعد</h3>
+  <div class="reply-box answered <?= $rstatus === 'postpone' ? 'neg' : '' ?>">
+    <?php if ($rstatus === 'confirmed'): ?>
+      <span class="ast ast-done">✓ أكّد استلام الموعد</span>
+    <?php else: ?>
+      <span class="ast ast-post">↪ طلب تأجيل الموعد</span>
+    <?php endif; ?>
+    <?php if (!empty($appt['recipient_note'])): ?><div class="txt"><?= nl2br(e($appt['recipient_note'])) ?></div><?php endif; ?>
+    <div class="reply-meta">⏱ <?= e(fmt_dt($appt['recipient_at'] ?? null)) ?></div>
+  </div>
+</div>
+<?php endif; ?>
+
 <?php if ($shareToken):
   $shareUrl = absolute_url('share', ['t' => $shareToken]);
   $shareText = 'موعد: ' . $appt['subject'] . ' — ' . $full;

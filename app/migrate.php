@@ -7,13 +7,18 @@ declare(strict_types=1);
  */
 
 if (!defined('SCHEMA_VERSION')) {
-    define('SCHEMA_VERSION', 5); // 1:الأساس 2:البريد 3:المواعيد 4:التنبيهات+حالة 5:رابط مشاركة الموعد
+    define('SCHEMA_VERSION', 6); // 5:رابط المشاركة · 6:ردّ صاحب الموعد
 }
 
 /** الترحيلات المطلوبة عند كل إصدار. */
 function migrations_map(): array
 {
     return [
+        6 => [
+            "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS recipient_status VARCHAR(20) DEFAULT NULL",
+            'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS recipient_note VARCHAR(600) DEFAULT NULL',
+            'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS recipient_at DATETIME DEFAULT NULL',
+        ],
         5 => [
             'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS share_token VARCHAR(40) DEFAULT NULL',
             'ALTER TABLE appointments ADD INDEX IF NOT EXISTS idx_share (share_token)',
