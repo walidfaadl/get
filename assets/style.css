@@ -362,3 +362,17 @@ select option{font-weight:400;color:var(--ink)}
 .share-btn.wa:hover{background:rgba(37,211,102,.12)}
 .share-btn.tg{border-color:color-mix(in srgb,#2AABEE 45%,transparent);color:#1E96D6}
 .share-btn.tg:hover{background:rgba(42,171,238,.12)}
+
+/* ===== Home boxes (mini lists) ===== */
+.home-boxes{margin-bottom:16px}
+.mini-list{display:flex;flex-direction:column}
+.mini-row{display:flex;align-items:center;gap:11px;padding:10px 4px;border-bottom:.5px solid var(--line)}
+.mini-row:last-child{border-bottom:0}
+.mini-row:hover{background:var(--surface-sunk)}
+.mini-row .d{width:8px;height:8px;border-radius:50%;flex:none}
+.mini-date{flex:none;width:58px;text-align:center;font-size:13px;font-weight:700;color:var(--brand);display:flex;flex-direction:column;line-height:1.2}
+.mini-date small{font-weight:500;color:var(--ink-mute);font-size:11px}
+.mini-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.mini-title{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-sub{font-size:12px;color:var(--ink-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-more{display:inline-block;margin-top:12px;font-size:13px;font-weight:600;color:var(--brand)}

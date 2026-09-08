@@ -44,6 +44,11 @@ if ($u) {
       <div class="sb-title"><h2><?= e(APP_NAME) ?></h2><p><?= e(APP_ORG) ?></p></div>
     </div>
     <nav class="sb-nav">
+      <?php if (is_manager()): ?>
+      <a href="<?= e(url('stats')) ?>" class="<?= $active === 'stats' ? 'active' : '' ?>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+        الرئيسية</a>
+      <?php endif; ?>
       <a href="<?= e(url('tasks')) ?>" class="nv-tasks <?= in_array($active, ['tasks', 'task', 'new', 'edit'], true) ? 'active' : '' ?>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>
         المهام <span class="nav-count"><?= (int) $navTasks ?></span></a>
@@ -53,9 +58,6 @@ if ($u) {
         المواعيد <?php if ($navAppts): ?><span class="nav-count"><?= (int) $navAppts ?></span><?php endif; ?></a>
       <?php endif; ?>
       <?php if (is_manager()): ?>
-      <a href="<?= e(url('stats')) ?>" class="<?= $active === 'stats' ? 'active' : '' ?>">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="10" width="4" height="7" rx="1"/><rect x="15" y="5" width="4" height="12" rx="1"/></svg>
-        الإحصائيات</a>
       <a href="<?= e(url('users')) ?>" class="<?= $active === 'users' ? 'active' : '' ?>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         المستخدمون</a>

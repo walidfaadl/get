@@ -15,14 +15,17 @@ try {
     exit('تعذّر الاتصال بقاعدة البيانات. ' . (APP_DEBUG ? e($ex->getMessage()) : 'راجع إعدادات app/config.local.php.'));
 }
 
-$r      = (string) ($_GET['r'] ?? 'tasks');
+$r      = (string) ($_GET['r'] ?? '');
 $method = $_SERVER['REQUEST_METHOD'];
 $isPost = $method === 'POST';
+
+/** الصفحة الرئيسية بحسب الدور: المدير → الرئيسية (الإحصائيات)، غيره → المهام. */
+$home_route = fn() => is_manager() ? 'stats' : 'tasks';
 
 /* ---------- مسارات عامة ---------- */
 if ($r === 'login') {
     if (current_user()) {
-        redirect(url('tasks'));
+        redirect(url($home_route()));
     }
     $error = null;
     if ($isPost) {
@@ -30,7 +33,7 @@ if ($r === 'login') {
         $username = trim((string) ($_POST['username'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         if (attempt_login($username, $password)) {
-            redirect(url('tasks'));
+            redirect(url($home_route()));
         }
         $error = 'اسم المستخدم أو كلمة المرور غير صحيحة.';
     }
@@ -47,6 +50,37 @@ if ($r === 'logout') {
 if ($r === 'share') {
     $appt = appointment_get_by_token((string) ($_GET['t'] ?? ''));
     require __DIR__ . '/views/share.php';
+    exit;
+}
+
+/* ملف تقويم .ics للموعد عبر رابط المشاركة — بلا تسجيل دخول */
+if ($r === 'ics') {
+    $appt = appointment_get_by_token((string) ($_GET['t'] ?? ''));
+    if (!$appt) {
+        http_response_code(404);
+        exit('غير موجود');
+    }
+    $start = strtotime($appt['starts_at']) ?: time();
+    $end   = $start + 3600;
+    $esc = fn($s) => preg_replace('/([,;\\\\])/', '\\\\$1', str_replace(["\r\n", "\n", "\r"], '\\n', (string) $s));
+    $host = $_SERVER['HTTP_HOST'] ?? 'tasktrak.co';
+    $desc = trim(($appt['with_whom'] ? 'مع: ' . $appt['with_whom'] . '\\n' : '') . (string) ($appt['notes'] ?? ''));
+    $lines = [
+        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TaskTrak//AR//', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        'UID:' . $appt['share_token'] . '@' . $host,
+        'DTSTAMP:' . gmdate('Ymd\THis\Z'),
+        'DTSTART:' . date('Ymd\THis', $start),
+        'DTEND:' . date('Ymd\THis', $end),
+        'SUMMARY:' . $esc($appt['subject']),
+    ];
+    if ($desc !== '') { $lines[] = 'DESCRIPTION:' . $esc($desc); }
+    if (!empty($appt['location'])) { $lines[] = 'LOCATION:' . $esc($appt['location']); }
+    $lines[] = 'END:VEVENT';
+    $lines[] = 'END:VCALENDAR';
+    header('Content-Type: text/calendar; charset=utf-8');
+    header('Content-Disposition: attachment; filename="appointment.ics"');
+    echo implode("\r\n", $lines) . "\r\n";
     exit;
 }
 
@@ -73,6 +107,9 @@ if ($r === 'share_respond') {
 /* ---------- تتطلب تسجيل دخول ---------- */
 require_login();
 $me = current_user();
+if ($r === '') {
+    $r = $home_route();
+}
 
 switch ($r) {
     /* ===== قائمة المهام ===== */
@@ -277,15 +314,17 @@ switch ($r) {
         break;
     }
 
-    /* ===== لوحة الإحصائيات (المدير) ===== */
+    /* ===== الرئيسية / لوحة الإحصائيات (المدير) ===== */
     case 'stats': {
         require_manager();
         render('stats', [
-            'counts'     => task_counts(),
-            'byDept'     => stats_by_department(),
-            'byAssignee' => stats_by_assignee(),
-            'overdue'    => overdue_tasks(),
-        ], 'الإحصائيات');
+            'counts'       => task_counts(),
+            'byDept'       => stats_by_department(),
+            'byAssignee'   => stats_by_assignee(),
+            'overdue'      => overdue_tasks(),
+            'recentTasks'  => recent_tasks(3),
+            'upcomingAppts' => upcoming_scheduled_appointments(3),
+        ], 'الرئيسية');
         break;
     }
 

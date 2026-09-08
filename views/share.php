@@ -100,6 +100,13 @@ $shareFlash = flash();
   .pp-form{margin-top:12px}
   .pp-form textarea{width:100%;border:.5px solid var(--line-strong);border-radius:10px;background:var(--bg);padding:10px 12px;font-family:inherit;font-size:14px;min-height:80px;resize:vertical;box-sizing:border-box}
   .pp-form .send{margin-top:8px;width:100%;height:44px;border:0;border-radius:10px;background:var(--doing);color:#fff;font-weight:600;font-size:14.5px;cursor:pointer}
+  .cal-add{margin:2px 0 14px;padding:14px;border:.5px dashed var(--line-strong);border-radius:12px;background:var(--sunk)}
+  .cal-add .lbl{font-size:13.5px;color:var(--soft);margin-bottom:10px;font-weight:600;display:flex;align-items:center;gap:7px}
+  .cal-add .lbl svg{width:17px;height:17px;color:var(--done)}
+  .cal-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .cal-btn{flex:1;min-width:150px;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:10px;font-size:14px;font-weight:600;border:.5px solid var(--line);background:#fff;color:var(--ink);text-decoration:none}
+  .cal-btn svg{width:18px;height:18px}
+  .cal-btn:hover{background:#f3f1ec}
 </style>
 </head>
 <body>
@@ -145,6 +152,32 @@ $shareFlash = flash();
         <div class="resp-state ok">✓ أكّدتَ استلام هذا الموعد.<?php if (!empty($appt['recipient_at'])): ?> <span style="opacity:.7">(<?= e(fmt_dt($appt['recipient_at'])) ?>)</span><?php endif; ?></div>
       <?php elseif ($rstatus === 'postpone'): ?>
         <div class="resp-state pp">↪ طلبتَ تأجيل الموعد.<?php if (!empty($appt['recipient_note'])): ?><div class="note"><?= nl2br(e($appt['recipient_note'])) ?></div><?php endif; ?></div>
+      <?php endif; ?>
+
+      <?php if ($rstatus === 'confirmed'):
+        $gStart = date('Ymd\THis', (int) $ts);
+        $gEnd   = date('Ymd\THis', (int) $ts + 3600);
+        $gDetails = trim(($appt['with_whom'] ? 'مع: ' . $appt['with_whom'] . "\n" : '') . (string) ($appt['notes'] ?? ''));
+        $gcal = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+              . '&text=' . rawurlencode($appt['subject'])
+              . '&dates=' . $gStart . '/' . $gEnd
+              . ($gDetails !== '' ? '&details=' . rawurlencode($gDetails) : '')
+              . (!empty($appt['location']) ? '&location=' . rawurlencode($appt['location']) : '');
+        $icsUrl = 'index.php?r=ics&t=' . rawurlencode($appt['share_token']);
+      ?>
+      <div class="cal-add">
+        <div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>أضِف الموعد إلى تقويمك</div>
+        <div class="cal-btns">
+          <a class="cal-btn" href="<?= e($gcal) ?>" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            تقويم Google
+          </a>
+          <a class="cal-btn" href="<?= e($icsUrl) ?>">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Apple / تقويم آخر
+          </a>
+        </div>
+      </div>
       <?php endif; ?>
 
       <div class="resp-btns">

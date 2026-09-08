@@ -1,9 +1,60 @@
-<?php /** @var array $counts @var array $byDept @var array $byAssignee @var array $overdue */
+<?php /** @var array $counts @var array $byDept @var array $byAssignee @var array $overdue
+ *  @var array $recentTasks @var array $upcomingAppts */
 $total = (int) $counts['total'];
 $done  = (int) $counts['تمت'];
 $rate  = $total > 0 ? round($done * 100 / $total) : 0;
 $pct = fn($n, $d) => $d > 0 ? round($n * 100 / $d) : 0;
+$recentTasks   = $recentTasks ?? [];
+$upcomingAppts = $upcomingAppts ?? [];
+$months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+$shortDate = function ($d) use ($months) {
+    $ts = strtotime((string) $d); return $ts ? ((int) date('j', $ts) . ' ' . $months[(int) date('n', $ts) - 1]) : '';
+};
 ?>
+<!-- مربّعان: آخر المهام + المواعيد القادمة -->
+<div class="two-col home-boxes">
+  <div class="card">
+    <h3 class="card-h">آخر المهام المطلوبة</h3>
+    <?php if (!$recentTasks): ?>
+      <p class="muted">لا مهام بعد.</p>
+    <?php else: ?>
+      <div class="mini-list">
+        <?php foreach ($recentTasks as $t): ?>
+          <a class="mini-row" href="<?= e(url('task', ['id' => $t['id']])) ?>">
+            <span class="d s-<?= e(status_slug($t['status'])) ?>"></span>
+            <span class="mini-main">
+              <span class="mini-title"><?= e($t['title']) ?></span>
+              <span class="mini-sub"><?= e($t['assignee_name'] ?? ($t['department'] ?: '—')) ?></span>
+            </span>
+            <span class="badge s-<?= e(status_slug($t['status'])) ?>"><?= e($t['status']) ?></span>
+          </a>
+        <?php endforeach; ?>
+      </div>
+      <a class="mini-more" href="<?= e(url('tasks')) ?>">كل المهام ←</a>
+    <?php endif; ?>
+  </div>
+
+  <div class="card">
+    <h3 class="card-h">مواعيد قادمة</h3>
+    <?php if (!$upcomingAppts): ?>
+      <p class="muted">لا مواعيد قادمة.</p>
+    <?php else: ?>
+      <div class="mini-list">
+        <?php foreach ($upcomingAppts as $a): $ts = strtotime($a['starts_at']); ?>
+          <a class="mini-row" href="<?= e(url('appt', ['id' => $a['id']])) ?>">
+            <span class="mini-date"><?= e($shortDate($a['starts_at'])) ?><small><?= $ts ? date('H:i', $ts) : '' ?></small></span>
+            <span class="mini-main">
+              <span class="mini-title"><?= e($a['subject']) ?></span>
+              <?php if (!empty($a['with_whom'])): ?><span class="mini-sub">مع: <?= e($a['with_whom']) ?></span><?php endif; ?>
+            </span>
+          </a>
+        <?php endforeach; ?>
+      </div>
+      <a class="mini-more" href="<?= e(url('appointments')) ?>">كل المواعيد ←</a>
+    <?php endif; ?>
+  </div>
+</div>
+
 <!-- ملخص علوي -->
 <div class="stats">
   <div class="stat all"><div class="v"><?= $total ?></div><div class="l">إجمالي المهام</div></div>

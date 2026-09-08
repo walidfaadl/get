@@ -317,6 +317,28 @@ function stats_by_assignee(): array
     );
 }
 
+/** آخر المهام المطلوبة (الأحدث إنشاءً). */
+function recent_tasks(int $limit = 3): array
+{
+    $limit = max(1, min(20, $limit));
+    return q_all(
+        "SELECT t.*, u.name AS assignee_name
+         FROM tasks t LEFT JOIN users u ON u.id = t.assigned_to
+         ORDER BY t.created_at DESC LIMIT $limit"
+    );
+}
+
+/** أقرب المواعيد المجدولة القادمة. */
+function upcoming_scheduled_appointments(int $limit = 3): array
+{
+    $limit = max(1, min(20, $limit));
+    return q_all(
+        "SELECT a.* FROM appointments a
+         WHERE (a.status = 'مجدول' OR a.status IS NULL) AND a.starts_at >= NOW()
+         ORDER BY a.starts_at ASC LIMIT $limit"
+    );
+}
+
 /** المهام المتأخرة: تجاوزت الاستحقاق ولمّا تُنجَز أو تُغلَق. */
 function overdue_tasks(): array
 {
