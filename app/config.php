@@ -32,7 +32,7 @@ define('APP_NAME', (string) cfg('app_name', 'TT_APP_NAME', 'نظام المها�
 define('APP_ORG',  (string) cfg('app_org',  'TT_APP_ORG',  'TaskTrak'));
 
 // إصدار الأصول (CSS/JS) لتجاوز الكاش عند التحديث — ارفعه عند تغيير style.css/app.js
-define('ASSET_VER', '4');
+define('ASSET_VER', '5');
 
 // وضع التصحيح: يُظهر تفاصيل الأخطاء. أبقِه false على الإنتاج.
 define('APP_DEBUG', filter_var(cfg('debug', 'TT_DEBUG', '0'), FILTER_VALIDATE_BOOL));

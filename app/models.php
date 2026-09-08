@@ -27,6 +27,13 @@ function tasks_list(array $filter = []): array
         $args[]  = $sc['user_id'];
         $args[]  = (string) ($sc['department'] ?? '');
     }
+    if (!empty($filter['late'])) {
+        $where[] = "t.due_date IS NOT NULL AND t.due_date < CURDATE() AND t.status NOT IN ('تمت','لم تتم')";
+    }
+    if (!empty($filter['assignee'])) {
+        $where[] = 't.assigned_to = ?';
+        $args[]  = (int) $filter['assignee'];
+    }
     if (isset($filter['search']) && $filter['search'] !== '') {
         $where[] = '(t.title LIKE ? OR t.details LIKE ?)';
         $like    = '%' . $filter['search'] . '%';
@@ -41,7 +48,14 @@ function tasks_list(array $filter = []): array
     if ($where) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
     }
-    $sql .= ' ORDER BY t.created_at DESC';
+    $sort = $filter['sort'] ?? 'recent';
+    if ($sort === 'due') {
+        $sql .= ' ORDER BY (t.due_date IS NULL), t.due_date ASC, t.created_at DESC';
+    } elseif ($sort === 'priority') {
+        $sql .= " ORDER BY FIELD(t.priority,'عالية','متوسطة','منخفضة'), t.created_at DESC";
+    } else {
+        $sql .= ' ORDER BY t.created_at DESC';
+    }
 
     return q_all($sql, $args);
 }

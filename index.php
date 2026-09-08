@@ -50,25 +50,38 @@ $me = current_user();
 switch ($r) {
     /* ===== قائمة المهام ===== */
     case 'tasks': {
-        $status = pick((string) ($_GET['status'] ?? ''), STATUSES, '');
+        $rawStatus = (string) ($_GET['status'] ?? '');
+        $late   = $rawStatus === 'late';
+        $status = $late ? '' : pick($rawStatus, STATUSES, '');
         $search = trim((string) ($_GET['q'] ?? ''));
-        $filter = [];
-        if ($status !== '') {
-            $filter['status'] = $status;
-        }
-        if ($search !== '') {
-            $filter['search'] = $search;
-        }
+        $assignee = (int) ($_GET['assignee'] ?? 0);
+        $sort   = pick((string) ($_GET['sort'] ?? 'recent'), ['recent', 'due', 'priority'], 'recent');
+
+        $filter = ['sort' => $sort];
+        if ($status !== '')   { $filter['status'] = $status; }
+        if ($late)            { $filter['late'] = true; }
+        if ($search !== '')   { $filter['search'] = $search; }
+        if ($assignee > 0)    { $filter['assignee'] = $assignee; }
+
         $scope = null;
         if (!is_manager()) {
             $scope = scope_for_user($me);
             $filter['assignee_scope'] = $scope;
         }
+        $counts = task_counts($scope);
+        // عدّ المتأخرة ضمن النطاق
+        $lateFilter = ['late' => true];
+        if ($scope) { $lateFilter['assignee_scope'] = $scope; }
+        $counts['late'] = count(tasks_list($lateFilter));
+
         render('tasks_list', [
-            'tasks'   => tasks_list($filter),
-            'counts'  => task_counts($scope),
-            'status'  => $status,
-            'search'  => $search,
+            'tasks'      => tasks_list($filter),
+            'counts'     => $counts,
+            'status'     => $late ? 'late' : $status,
+            'search'     => $search,
+            'sort'       => $sort,
+            'assignee'   => $assignee,
+            'assignable' => is_manager() ? users_assignable() : [],
         ], 'المهام');
         break;
     }

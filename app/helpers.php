@@ -111,6 +111,50 @@ function appt_status_slug(string $s): string
     return ['مجدول' => 'sched', 'تم' => 'done', 'تأجّل' => 'post', 'لم يُعقد' => 'noshow'][$s] ?? 'sched';
 }
 
+/** هل المهمة متأخرة؟ (تجاوزت الاستحقاق ولمّا تُنجَز أو تُغلَق) */
+function task_is_late(array $t): bool
+{
+    if (empty($t['due_date']) || in_array($t['status'] ?? '', ['تمت', 'لم تتم'], true)) {
+        return false;
+    }
+    $due = strtotime($t['due_date']);
+    return $due !== false && $due < strtotime('today');
+}
+
+/** مجموعة المهمة الزمنية: late|today|week|later|none */
+function task_bucket(array $t): string
+{
+    if (task_is_late($t)) {
+        return 'late';
+    }
+    if (empty($t['due_date'])) {
+        return 'none';
+    }
+    $diff = (int) floor((strtotime($t['due_date']) - strtotime('today')) / 86400);
+    if ($diff <= 0) {
+        return 'today';
+    }
+    return $diff <= 7 ? 'week' : 'later';
+}
+
+/** تسمية الاستحقاق النسبية (اليوم/غدًا/أمس/تاريخ). */
+function fmt_due_rel(array $t): string
+{
+    if (($t['status'] ?? '') === 'تمت') {
+        return 'منجزة';
+    }
+    if (empty($t['due_date'])) {
+        return '';
+    }
+    $months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    $ts = strtotime($t['due_date']);
+    $diff = (int) floor(($ts - strtotime('today')) / 86400);
+    if ($diff === 0) return 'اليوم';
+    if ($diff === 1) return 'غدًا';
+    if ($diff === -1) return 'أمس';
+    return (int) date('j', $ts) . ' ' . $months[(int) date('n', $ts) - 1];
+}
+
 /** عرض قالب داخل التخطيط العام. */
 function render(string $view, array $data = [], ?string $title = null): void
 {
