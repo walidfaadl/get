@@ -19,7 +19,33 @@ document.addEventListener('click', function (e) {
     lbl.parentNode.querySelectorAll('label').forEach(function (l) { l.classList.remove('sel'); });
     lbl.classList.add('sel');
   }
+
+  // نسخ رابط المشاركة
+  var copyBtn = e.target.closest('[data-copy]');
+  if (copyBtn) {
+    var inp = document.querySelector(copyBtn.getAttribute('data-copy'));
+    if (inp) {
+      inp.select();
+      var done = function () { var t = copyBtn.textContent; copyBtn.textContent = 'تم النسخ ✓'; setTimeout(function () { copyBtn.textContent = t; }, 1600); };
+      if (navigator.clipboard) { navigator.clipboard.writeText(inp.value).then(done, function () { try { document.execCommand('copy'); done(); } catch (x) {} }); }
+      else { try { document.execCommand('copy'); done(); } catch (x) {} }
+    }
+    return;
+  }
+
+  // مشاركة عبر واجهة النظام (الهاتف)
+  var sh = e.target.closest('[data-share-url]');
+  if (sh && navigator.share) {
+    navigator.share({ title: sh.getAttribute('data-share-title') || '', text: sh.getAttribute('data-share-text') || '', url: sh.getAttribute('data-share-url') }).catch(function () {});
+  }
 });
+
+// إظهار زر المشاركة الأصلية إن كان مدعوماً
+(function () {
+  if (navigator.share) {
+    document.querySelectorAll('.share-btn.native').forEach(function (b) { b.hidden = false; });
+  }
+})();
 
 // نموذج المستخدمين: تعبئة للتعديل
 function fillUserForm(u) {

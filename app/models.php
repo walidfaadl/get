@@ -367,8 +367,8 @@ function appointment_get(int $id): ?array
 function appointment_create(array $d): int
 {
     q(
-        'INSERT INTO appointments (subject, with_whom, starts_at, location, notes, created_by, shared_with)
-         VALUES (?,?,?,?,?,?,?)',
+        'INSERT INTO appointments (subject, with_whom, starts_at, location, notes, created_by, shared_with, share_token)
+         VALUES (?,?,?,?,?,?,?,?)',
         [
             $d['subject'],
             $d['with_whom'] ?: null,
@@ -377,9 +377,37 @@ function appointment_create(array $d): int
             $d['notes'] ?: null,
             $d['created_by'] ?? null,
             $d['shared_with'] ?: null,
+            bin2hex(random_bytes(16)),
         ]
     );
     return (int) db()->lastInsertId();
+}
+
+/** جلب موعد عبر مُعرّف المشاركة العام (للصفحة العامة). */
+function appointment_get_by_token(string $token): ?array
+{
+    if (strlen($token) < 8) {
+        return null;
+    }
+    return q_one(
+        "SELECT a.*, c.name AS creator_name
+         FROM appointments a
+         LEFT JOIN users c ON c.id = a.created_by
+         WHERE a.share_token = ? LIMIT 1",
+        [$token]
+    );
+}
+
+/** يضمن وجود مُعرّف مشاركة للموعد ويعيده (يولّده إن لزم). */
+function appointment_ensure_token(int $id): string
+{
+    $row = q_one('SELECT share_token FROM appointments WHERE id = ? LIMIT 1', [$id]);
+    if ($row && !empty($row['share_token'])) {
+        return $row['share_token'];
+    }
+    $token = bin2hex(random_bytes(16));
+    q('UPDATE appointments SET share_token = ? WHERE id = ?', [$token, $id]);
+    return $token;
 }
 
 function appointment_update(int $id, array $d): void

@@ -350,3 +350,15 @@ select option{font-weight:400;color:var(--ink)}
   .stats{grid-template-columns:repeat(2,1fr)}
   .topbar-logout span{display:none}
 }
+
+/* ===== Share appointment ===== */
+.share-link{display:flex;gap:8px;margin-bottom:12px}
+.share-link input{flex:1;height:40px;padding:0 12px;border:.5px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface-sunk);color:var(--ink-soft);font-size:13px;direction:ltr;text-align:left}
+.share-btns{display:flex;gap:8px;flex-wrap:wrap}
+.share-btn{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 15px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;border:.5px solid var(--line-strong);background:var(--surface);color:var(--ink-soft);transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
+.share-btn svg{width:17px;height:17px}
+.share-btn:hover{background:var(--surface-sunk);color:var(--ink)}
+.share-btn.wa{border-color:color-mix(in srgb,#25D366 45%,transparent);color:#1EA952}
+.share-btn.wa:hover{background:rgba(37,211,102,.12)}
+.share-btn.tg{border-color:color-mix(in srgb,#2AABEE 45%,transparent);color:#1E96D6}
+.share-btn.tg:hover{background:rgba(42,171,238,.12)}

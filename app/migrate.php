@@ -7,13 +7,17 @@ declare(strict_types=1);
  */
 
 if (!defined('SCHEMA_VERSION')) {
-    define('SCHEMA_VERSION', 4); // 1: الأساس · 2: البريد · 3: المواعيد · 4: التنبيهات + حالة الموعد
+    define('SCHEMA_VERSION', 5); // 1:الأساس 2:البريد 3:المواعيد 4:التنبيهات+حالة 5:رابط مشاركة الموعد
 }
 
 /** الترحيلات المطلوبة عند كل إصدار. */
 function migrations_map(): array
 {
     return [
+        5 => [
+            'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS share_token VARCHAR(40) DEFAULT NULL',
+            'ALTER TABLE appointments ADD INDEX IF NOT EXISTS idx_share (share_token)',
+        ],
         2 => [
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(190) NULL',
         ],

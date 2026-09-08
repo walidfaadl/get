@@ -43,6 +43,13 @@ if ($r === 'logout') {
     redirect(url('login'));
 }
 
+/* صفحة موعد عامة عبر رابط المشاركة — بلا تسجيل دخول، للقراءة فقط */
+if ($r === 'share') {
+    $appt = appointment_get_by_token((string) ($_GET['t'] ?? ''));
+    require __DIR__ . '/views/share.php';
+    exit;
+}
+
 /* ---------- تتطلب تسجيل دخول ---------- */
 require_login();
 $me = current_user();
@@ -293,7 +300,9 @@ switch ($r) {
             render('message', ['heading' => 'غير متاح', 'text' => 'الموعد غير موجود أو خارج نطاقك.'], 'خطأ');
             break;
         }
-        render('appt_detail', ['appt' => $appt], $appt['subject']);
+        // ضمان مُعرّف مشاركة لعرض رابط المشاركة (لمن يملك تعديل الموعد)
+        $shareToken = appointment_can_edit($appt, $me) ? appointment_ensure_token((int) $appt['id']) : null;
+        render('appt_detail', ['appt' => $appt, 'shareToken' => $shareToken], $appt['subject']);
         break;
     }
 
