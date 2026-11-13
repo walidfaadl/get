@@ -48,12 +48,26 @@ function can_manage_appointments(): bool
     return is_manager() || is_head();
 }
 
-/** يتطلب تسجيل دخول، وإلا يحوّل لصفحة الدخول. */
+/** يتطلب تسجيل دخول، وإلا يحوّل لصفحة الدخول (مع حفظ الوجهة للعودة إليها). */
 function require_login(): void
 {
     if (current_user() === null) {
+        // احفظ الرابط المقصود (GET فقط) للعودة إليه بعد الدخول — روابط المشاركة مثلاً
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+            $uri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+            if (is_safe_return_path($uri)) {
+                $_SESSION['after_login'] = $uri;
+            }
+        }
         redirect(url('login'));
     }
+}
+
+/** هل المسار وجهة داخلية آمنة للعودة (يمنع إعادة التوجيه المفتوح)؟ */
+function is_safe_return_path(string $uri): bool
+{
+    // مسار محلي فقط: يبدأ بشرطة واحدة وليس بشرطتين (بروتوكول نسبي)
+    return $uri !== '' && $uri[0] === '/' && !str_starts_with($uri, '//') && !str_contains($uri, "\\");
 }
 
 /** يتطلب دور المدير. */

@@ -7,13 +7,17 @@ declare(strict_types=1);
  */
 
 if (!defined('SCHEMA_VERSION')) {
-    define('SCHEMA_VERSION', 7); // 5:رابط المشاركة · 6:ردّ صاحب الموعد · 7:مخرجات اللقاءات
+    define('SCHEMA_VERSION', 8); // 6:ردّ صاحب الموعد · 7:مخرجات اللقاءات · 8:رابط مشاركة المخرَج
 }
 
 /** الترحيلات المطلوبة عند كل إصدار. */
 function migrations_map(): array
 {
     return [
+        8 => [
+            'ALTER TABLE outcomes ADD COLUMN IF NOT EXISTS share_token VARCHAR(40) DEFAULT NULL',
+            'ALTER TABLE outcomes ADD INDEX IF NOT EXISTS idx_oshare (share_token)',
+        ],
         7 => [
             "CREATE TABLE IF NOT EXISTS outcomes (
                 id              INT UNSIGNED NOT NULL AUTO_INCREMENT,

@@ -600,8 +600,8 @@ function outcome_set_attendees(int $outcomeId, array $userIds): void
 function outcome_create(array $d, array $attendeeIds): int
 {
     q(
-        'INSERT INTO outcomes (title, met_at, body, followup_agreed, followup_at, created_by)
-         VALUES (?,?,?,?,?,?)',
+        'INSERT INTO outcomes (title, met_at, body, followup_agreed, followup_at, created_by, share_token)
+         VALUES (?,?,?,?,?,?,?)',
         [
             $d['title'],
             $d['met_at'],
@@ -609,11 +609,31 @@ function outcome_create(array $d, array $attendeeIds): int
             !empty($d['followup_agreed']) ? 1 : 0,
             (!empty($d['followup_agreed']) && !empty($d['followup_at'])) ? $d['followup_at'] : null,
             $d['created_by'] ?? null,
+            bin2hex(random_bytes(16)),
         ]
     );
     $id = (int) db()->lastInsertId();
     outcome_set_attendees($id, $attendeeIds);
     return $id;
+}
+
+/** يضمن وجود مُعرّف مشاركة للمخرَج ويعيده (يولّده إن لزم). */
+function outcome_ensure_token(int $id): string
+{
+    $row = q_one('SELECT share_token FROM outcomes WHERE id = ? LIMIT 1', [$id]);
+    if ($row && !empty($row['share_token'])) {
+        return $row['share_token'];
+    }
+    $token = bin2hex(random_bytes(16));
+    q('UPDATE outcomes SET share_token = ? WHERE id = ?', [$token, $id]);
+    return $token;
+}
+
+/** هل يطابق المُعرّف المعطى مُعرّف مشاركة المخرَج؟ (مقارنة زمن ثابت) */
+function outcome_token_matches(array $outcome, string $token): bool
+{
+    $stored = (string) ($outcome['share_token'] ?? '');
+    return $stored !== '' && strlen($token) >= 8 && hash_equals($stored, $token);
 }
 
 function outcome_update(int $id, array $d, array $attendeeIds): void

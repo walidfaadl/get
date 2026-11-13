@@ -24,8 +24,14 @@ $home_route = fn() => is_manager() ? 'stats' : 'tasks';
 
 /* ---------- مسارات عامة ---------- */
 if ($r === 'login') {
+    // الوجهة بعد الدخول: الرابط المقصود المحفوظ (مشاركة مثلاً) أو الصفحة الرئيسية
+    $afterLogin = function () use ($home_route) {
+        $next = $_SESSION['after_login'] ?? '';
+        unset($_SESSION['after_login']);
+        return (is_string($next) && is_safe_return_path($next)) ? $next : url($home_route());
+    };
     if (current_user()) {
-        redirect(url($home_route()));
+        redirect($afterLogin());
     }
     $error = null;
     if ($isPost) {
@@ -33,7 +39,7 @@ if ($r === 'login') {
         $username = trim((string) ($_POST['username'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         if (attempt_login($username, $password)) {
-            redirect(url($home_route()));
+            redirect($afterLogin());
         }
         $error = 'اسم المستخدم أو كلمة المرور غير صحيحة.';
     }
@@ -483,15 +489,26 @@ switch ($r) {
     case 'outcome': {
         $id = (int) ($_GET['id'] ?? 0);
         $o  = outcome_get($id);
-        if (!$o || !outcome_in_scope($o, $me)) {
-            http_response_code($o ? 403 : 404);
-            render('message', ['heading' => 'غير متاح', 'text' => 'المخرجات غير موجودة أو خارج نطاقك.'], 'خطأ');
+        if (!$o) {
+            http_response_code(404);
+            render('message', ['heading' => 'غير متاح', 'text' => 'المخرجات غير موجودة.'], 'خطأ');
             break;
         }
+        // رابط المشاركة: يتطلّب تسجيل دخول (المستخدم مُسجَّل أصلاً هنا) ويمنح الاطّلاع
+        $token    = (string) ($_GET['t'] ?? '');
+        $viaShare = $token !== '' && outcome_token_matches($o, $token);
+        if (!$viaShare && !outcome_in_scope($o, $me)) {
+            http_response_code(403);
+            render('message', ['heading' => 'غير متاح', 'text' => 'المخرجات خارج نطاقك.'], 'خطأ');
+            break;
+        }
+        $canEdit = outcome_can_edit($o, $me);
         render('outcome_detail', [
-            'o'         => $o,
-            'attendees' => outcome_attendees($id),
-            'canEdit'   => outcome_can_edit($o, $me),
+            'o'          => $o,
+            'attendees'  => outcome_attendees($id),
+            'canEdit'    => $canEdit,
+            'viaShare'   => $viaShare && !outcome_in_scope($o, $me),
+            'shareToken' => $canEdit ? outcome_ensure_token($id) : null,
         ], $o['title']);
         break;
     }
