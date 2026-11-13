@@ -47,6 +47,98 @@ document.addEventListener('click', function (e) {
   }
 })();
 
+// ===== محرّر النص الغنيّ للمخرجات =====
+(function () {
+  var areas = document.querySelectorAll('.rte-area');
+  if (!areas.length) return;
+
+  function sync(area) {
+    var tgt = document.querySelector(area.getAttribute('data-target'));
+    if (tgt) tgt.value = area.innerHTML;
+  }
+
+  areas.forEach(function (area) {
+    // مزامنة أولية + عند كل تعديل
+    sync(area);
+    area.addEventListener('input', function () { sync(area); });
+    area.addEventListener('blur', function () { sync(area); });
+    // مزامنة مؤكّدة قبل إرسال النموذج
+    var form = area.closest('form');
+    if (form) form.addEventListener('submit', function () { sync(area); });
+  });
+
+  // أزرار شريط الأدوات
+  document.addEventListener('mousedown', function (e) {
+    var btn = e.target.closest('.rte-btn');
+    if (!btn) return;
+    e.preventDefault(); // حافظ على التحديد داخل المحرّر
+  });
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.rte-btn');
+    if (!btn) return;
+    e.preventDefault();
+    var rte = btn.closest('.rte');
+    var area = rte ? rte.querySelector('.rte-area') : null;
+    if (area) area.focus();
+    var cmd = btn.getAttribute('data-cmd');
+    var val = btn.getAttribute('data-val') || null;
+    try {
+      if (cmd === 'createLink') {
+        var url = prompt('أدخل الرابط (https://...)');
+        if (url) { document.execCommand('createLink', false, url); }
+      } else if (cmd === 'formatBlock') {
+        document.execCommand('formatBlock', false, val);
+      } else {
+        document.execCommand(cmd, false, null);
+      }
+    } catch (x) {}
+    if (area) {
+      var tgt = document.querySelector(area.getAttribute('data-target'));
+      if (tgt) tgt.value = area.innerHTML;
+    }
+  });
+})();
+
+// ===== نموذج المخرجات: المتابعة والحضور =====
+(function () {
+  // إظهار/إخفاء حقل موعد المتابعة
+  var fc = document.getElementById('followChoices');
+  var ff = document.getElementById('followupField');
+  if (fc && ff) {
+    fc.addEventListener('click', function (e) {
+      var lbl = e.target.closest('label'); if (!lbl) return;
+      ff.style.display = (lbl.getAttribute('data-fo') === 'yes') ? '' : 'none';
+    });
+  }
+
+  // اختيار الحاضرين: تظليل + عدّاد + تحديد الكل
+  var grid = document.getElementById('attGrid');
+  if (grid) {
+    var countEl = document.getElementById('attCount');
+    var boxes = grid.querySelectorAll('input[type="checkbox"]');
+    function refresh() {
+      var n = 0;
+      boxes.forEach(function (b) {
+        b.closest('.att').classList.toggle('on', b.checked);
+        if (b.checked) n++;
+      });
+      if (countEl) countEl.textContent = n;
+    }
+    grid.addEventListener('change', refresh);
+    refresh();
+
+    var allBtn = document.querySelector('[data-check-all]');
+    if (allBtn) {
+      allBtn.addEventListener('click', function () {
+        var anyOff = Array.prototype.some.call(boxes, function (b) { return !b.checked; });
+        boxes.forEach(function (b) { b.checked = anyOff; });
+        allBtn.textContent = anyOff ? 'إلغاء التحديد' : 'تحديد الكل';
+        refresh();
+      });
+    }
+  }
+})();
+
 // نموذج المستخدمين: تعبئة للتعديل
 function fillUserForm(u) {
   document.getElementById('u_id').value = u.id;

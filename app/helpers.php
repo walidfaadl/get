@@ -155,6 +155,99 @@ function fmt_due_rel(array $t): string
     return (int) date('j', $ts) . ' ' . $months[(int) date('n', $ts) - 1];
 }
 
+/* ===== تنقية/تحويل نص المخرجات المنسّق (HTML) ===== */
+
+/** الوسوم المسموح بها داخل نص المخرجات المنسّق. */
+const OUTCOME_HTML_TAGS = ['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'ul', 'ol', 'li', 'h3', 'h4', 'blockquote', 'a'];
+
+/**
+ * تنقية HTML قادم من محرّر النص الغني إلى مجموعة وسوم آمنة فقط،
+ * مع إزالة كل السمات (عدا href آمن على الروابط) ومنع XSS.
+ */
+function sanitize_html(string $html): string
+{
+    $html = trim($html);
+    if ($html === '') {
+        return '';
+    }
+    if (strlen($html) > 80000) {
+        $html = substr($html, 0, 80000);
+    }
+    // بديل آمن إن غابت إضافة DOM
+    if (!class_exists('DOMDocument')) {
+        $allowed = '<' . implode('><', OUTCOME_HTML_TAGS) . '>';
+        return trim(strip_tags($html, $allowed));
+    }
+    $doc = new DOMDocument();
+    $prev = libxml_use_internal_errors(true);
+    // ميتا لضبط ترميز UTF-8 أثناء التحميل
+    $doc->loadHTML(
+        '<?xml encoding="UTF-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><body>' . $html . '</body>',
+        LIBXML_NOERROR | LIBXML_NOWARNING
+    );
+    libxml_clear_errors();
+    libxml_use_internal_errors($prev);
+    $body = $doc->getElementsByTagName('body')->item(0);
+    if (!$body) {
+        return '';
+    }
+    $out = '';
+    foreach (iterator_to_array($body->childNodes) as $child) {
+        $out .= tt_clean_node($child);
+    }
+    return trim($out);
+}
+
+/** تنقية عقدة DOM واحدة وإرجاع HTML نصّي آمن. */
+function tt_clean_node(DOMNode $node): string
+{
+    if ($node->nodeType === XML_TEXT_NODE) {
+        return e($node->nodeValue);
+    }
+    if ($node->nodeType !== XML_ELEMENT_NODE) {
+        return ''; // تعليقات/عقد أخرى تُحذف
+    }
+    $tag = strtolower($node->nodeName);
+    $inner = '';
+    foreach (iterator_to_array($node->childNodes) as $child) {
+        $inner .= tt_clean_node($child);
+    }
+    // تطبيع بعض الوسوم إلى المسموح
+    if ($tag === 'div') { $tag = 'p'; }
+    if ($tag === 'h1' || $tag === 'h2') { $tag = 'h3'; }
+    if (!in_array($tag, OUTCOME_HTML_TAGS, true)) {
+        return $inner; // وسم غير مسموح → فكّ التغليف مع إبقاء المحتوى
+    }
+    if ($tag === 'br') {
+        return '<br>';
+    }
+    if ($tag === 'a') {
+        $href = trim($node->getAttribute('href'));
+        if ($href !== '' && preg_match('#^(https?:|mailto:)#i', $href)) {
+            return '<a href="' . e($href) . '" target="_blank" rel="noopener nofollow">' . $inner . '</a>';
+        }
+        return $inner;
+    }
+    return '<' . $tag . '>' . $inner . '</' . $tag . '>';
+}
+
+/** هل نص المخرجات المنقّى فارغ فعلياً (بلا محتوى مرئي)؟ */
+function html_is_blank(string $html): bool
+{
+    $t = trim(html_entity_decode(strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $html)), ENT_QUOTES, 'UTF-8'));
+    return $t === '' || preg_replace('/[\s\x{00A0}]+/u', '', $t) === '';
+}
+
+/** تحويل نص المخرجات المنسّق إلى نص عادي (للبريد). */
+function html_to_text(string $html): string
+{
+    $html = preg_replace('#<\s*(br|/p|/li|/h3|/h4|/blockquote|/div)\s*/?>#i', "\n", $html);
+    $html = preg_replace('#<\s*li[^>]*>#i', '• ', $html);
+    $text = html_entity_decode(strip_tags($html), ENT_QUOTES, 'UTF-8');
+    $text = preg_replace("/\n{3,}/", "\n\n", $text);
+    return trim((string) $text);
+}
+
 /** عرض قالب داخل التخطيط العام. */
 function render(string $view, array $data = [], ?string $title = null): void
 {

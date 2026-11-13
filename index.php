@@ -471,6 +471,140 @@ switch ($r) {
         break;
     }
 
+    /* ===== مخرجات اللقاءات ===== */
+    case 'outcomes': {
+        render('outcomes', [
+            'outcomes' => outcomes_for($me),
+            'canCreate' => can_manage_appointments(),
+        ], 'المخرجات');
+        break;
+    }
+
+    case 'outcome': {
+        $id = (int) ($_GET['id'] ?? 0);
+        $o  = outcome_get($id);
+        if (!$o || !outcome_in_scope($o, $me)) {
+            http_response_code($o ? 403 : 404);
+            render('message', ['heading' => 'غير متاح', 'text' => 'المخرجات غير موجودة أو خارج نطاقك.'], 'خطأ');
+            break;
+        }
+        render('outcome_detail', [
+            'o'         => $o,
+            'attendees' => outcome_attendees($id),
+            'canEdit'   => outcome_can_edit($o, $me),
+        ], $o['title']);
+        break;
+    }
+
+    case 'outcome_new':
+    case 'outcome_edit': {
+        if (!can_manage_appointments()) {
+            redirect(url('outcomes'));
+        }
+        $o = null;
+        $selected = [];
+        if ($r === 'outcome_edit') {
+            $o = outcome_get((int) ($_GET['id'] ?? 0));
+            if (!$o || !outcome_can_edit($o, $me)) {
+                redirect(url('outcomes'));
+            }
+            $selected = outcome_attendee_ids((int) $o['id']);
+        }
+        render('outcome_form', [
+            'o'        => $o,
+            'users'    => users_active(),
+            'selected' => $selected,
+        ], $o ? 'تعديل مخرجات' : 'مخرجات جديدة');
+        break;
+    }
+
+    case 'outcome_save': {
+        if (!can_manage_appointments() || !$isPost) {
+            redirect(url('outcomes'));
+        }
+        csrf_check();
+        $id = (int) ($_POST['id'] ?? 0);
+        $metAt = trim((string) ($_POST['met_at'] ?? ''));
+        $metAt = str_replace('T', ' ', $metAt);
+        if ($metAt !== '' && strlen($metAt) === 16) {
+            $metAt .= ':00';
+        }
+        $foAt = trim((string) ($_POST['followup_at'] ?? ''));
+        $foAt = str_replace('T', ' ', $foAt);
+        if ($foAt !== '' && strlen($foAt) === 16) {
+            $foAt .= ':00';
+        }
+        $bodyClean = sanitize_html((string) ($_POST['body'] ?? ''));
+        $data = [
+            'title'           => trim((string) ($_POST['title'] ?? '')),
+            'met_at'          => $metAt,
+            'body'            => $bodyClean,
+            'followup_agreed' => ((string) ($_POST['followup'] ?? '')) === 'yes',
+            'followup_at'     => $foAt,
+        ];
+        $attendeeIds = array_map('intval', (array) ($_POST['attendees'] ?? []));
+
+        if ($data['title'] === '' || $data['met_at'] === '') {
+            flash('العنوان وموعد اللقاء مطلوبان.', 'err');
+            redirect($id ? url('outcome_edit', ['id' => $id]) : url('outcome_new'));
+        }
+        if (html_is_blank($bodyClean)) {
+            flash('نص المخرجات مطلوب.', 'err');
+            redirect($id ? url('outcome_edit', ['id' => $id]) : url('outcome_new'));
+        }
+
+        if ($id) {
+            $o = outcome_get($id);
+            if (!$o || !outcome_can_edit($o, $me)) {
+                redirect(url('outcomes'));
+            }
+            outcome_update($id, $data, $attendeeIds);
+            flash('تم تحديث المخرجات.');
+        } else {
+            $data['created_by'] = $me['id'];
+            $id = outcome_create($data, $attendeeIds);
+            flash('تمت إضافة المخرجات.');
+        }
+        redirect(url('outcome', ['id' => $id]));
+        break;
+    }
+
+    case 'outcome_delete': {
+        if (can_manage_appointments() && $isPost) {
+            csrf_check();
+            $o = outcome_get((int) ($_POST['id'] ?? 0));
+            if ($o && outcome_can_edit($o, $me)) {
+                outcome_delete((int) $o['id']);
+                flash('تم حذف المخرجات.');
+            }
+        }
+        redirect(url('outcomes'));
+        break;
+    }
+
+    /* إرسال المخرجات إلى الحاضرين للمتابعة */
+    case 'outcome_send': {
+        if (!can_manage_appointments() || !$isPost) {
+            redirect(url('outcomes'));
+        }
+        csrf_check();
+        $id = (int) ($_POST['id'] ?? 0);
+        $o  = outcome_get($id);
+        if (!$o || !outcome_can_edit($o, $me)) {
+            redirect(url('outcomes'));
+        }
+        $attendees = outcome_attendees($id);
+        if (!$attendees) {
+            flash('أضِف الحاضرين أولاً قبل الإرسال.', 'err');
+            redirect(url('outcome', ['id' => $id]));
+        }
+        $sentMail = notify_outcome_sent($id);
+        outcome_mark_sent($id);
+        flash('تم إرسال المخرجات إلى ' . count($attendees) . ' من الحاضرين' . ($sentMail ? " (بريد: $sentMail)" : '') . '.');
+        redirect(url('outcome', ['id' => $id]));
+        break;
+    }
+
     /* ===== التنبيهات (لكل المستخدمين) ===== */
     case 'notifications': {
         $list = notifs_for((int) $me['id']);

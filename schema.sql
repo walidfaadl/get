@@ -87,6 +87,32 @@ CREATE TABLE IF NOT EXISTS notifications (
   CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- مخرجات اللقاءات (نصوص مخرجات + الحاضرون + متابعة)
+CREATE TABLE IF NOT EXISTS outcomes (
+  id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  title           VARCHAR(200) NOT NULL,
+  met_at          DATETIME     NOT NULL,                 -- موعد اللقاء الذي تم
+  body            MEDIUMTEXT   NOT NULL,                 -- نص المخرجات (HTML منسّق ومنقّى)
+  followup_agreed TINYINT(1)   NOT NULL DEFAULT 0,       -- هل اتُّفق على موعد متابعة
+  followup_at     DATETIME     DEFAULT NULL,             -- موعد المتابعة (إن وُجد)
+  created_by      INT UNSIGNED DEFAULT NULL,
+  sent_at         DATETIME     DEFAULT NULL,             -- متى أُرسلت للحاضرين
+  created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_met (met_at),
+  CONSTRAINT fk_outcome_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS outcome_attendees (
+  outcome_id INT UNSIGNED NOT NULL,
+  user_id    INT UNSIGNED NOT NULL,
+  PRIMARY KEY (outcome_id, user_id),
+  KEY idx_oa_user (user_id),
+  CONSTRAINT fk_oa_outcome FOREIGN KEY (outcome_id) REFERENCES outcomes(id) ON DELETE CASCADE,
+  CONSTRAINT fk_oa_user    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS task_comments (
   id         INT UNSIGNED NOT NULL AUTO_INCREMENT,
   task_id    INT UNSIGNED NOT NULL,

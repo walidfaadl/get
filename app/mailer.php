@@ -180,3 +180,50 @@ function notify_appointment_response(int $apptId): void
     $lines[] = '— ' . APP_NAME;
     send_mail($mgr['email'], ($isConfirm ? 'تأكيد موعد: ' : 'طلب تأجيل: ') . $a['subject'], implode("\n", $lines));
 }
+
+/** إرسال مخرجات اللقاء إلى الحاضرين للمتابعة. يُعيد عدد الرسائل المُرسَلة. */
+function notify_outcome_sent(int $outcomeId): int
+{
+    $o = outcome_get($outcomeId);
+    if (!$o) {
+        return 0;
+    }
+    $attendees = outcome_attendees($outcomeId);
+    $link = absolute_url('outcome', ['id' => $outcomeId]);
+    $bodyText = html_to_text((string) $o['body']);
+    $sent = 0;
+    foreach ($attendees as $u) {
+        // تنبيه داخل النظام لكل حاضر
+        notif_add((int) $u['id'], 'outcome', 'مخرجات لقاء للمتابعة', $o['title'], 'outcome', $outcomeId);
+        if (empty($u['email'])) {
+            continue;
+        }
+        $lines = [
+            'مرحباً ' . $u['name'] . '،',
+            '',
+            'إليك مخرجات اللقاء للمتابعة عبر ' . APP_NAME . ':',
+            '',
+            'الموضوع: ' . $o['title'],
+            'تاريخ اللقاء: ' . fmt_dt($o['met_at']),
+        ];
+        if (!empty($o['followup_agreed'])) {
+            $lines[] = !empty($o['followup_at'])
+                ? 'موعد المتابعة: ' . fmt_dt($o['followup_at'])
+                : 'اتُّفق على متابعة (الموعد يُحدَّد لاحقاً).';
+        } else {
+            $lines[] = 'لم يُتّفق على موعد متابعة.';
+        }
+        $lines[] = '';
+        $lines[] = 'المخرجات:';
+        $lines[] = $bodyText;
+        $lines[] = '';
+        $lines[] = 'لعرض المخرجات كاملة:';
+        $lines[] = $link;
+        $lines[] = '';
+        $lines[] = '— ' . APP_NAME;
+        if (send_mail($u['email'], 'مخرجات لقاء: ' . $o['title'], implode("\n", $lines))) {
+            $sent++;
+        }
+    }
+    return $sent;
+}

@@ -191,6 +191,15 @@ function users_assignable(): array
     );
 }
 
+/** كل المستخدمين الفعّالين (لاختيار الحاضرين في المخرجات). */
+function users_active(): array
+{
+    return q_all(
+        "SELECT * FROM users WHERE active = 1
+         ORDER BY (role = 'manager') DESC, (role = 'head') DESC, name ASC"
+    );
+}
+
 function user_get(int $id): ?array
 {
     return q_one('SELECT * FROM users WHERE id = ? LIMIT 1', [$id]);
@@ -519,4 +528,138 @@ function notifs_unread(int $userId): int
 function notifs_mark_all_read(int $userId): void
 {
     q('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0', [$userId]);
+}
+
+/* ---------- مخرجات اللقاءات ---------- */
+
+/**
+ * قائمة مخرجات اللقاءات حسب المستخدم.
+ * المدير يرى الكل؛ غيره يرى ما أنشأه أو كان حاضراً فيه.
+ */
+function outcomes_for(array $user): array
+{
+    $base = "SELECT o.*, c.name AS creator_name,
+                    (SELECT COUNT(*) FROM outcome_attendees oa WHERE oa.outcome_id = o.id) AS attendee_count
+             FROM outcomes o
+             LEFT JOIN users c ON c.id = o.created_by";
+    if (($user['role'] ?? '') === 'manager') {
+        return q_all("$base ORDER BY o.met_at DESC");
+    }
+    $uid = (int) $user['id'];
+    return q_all(
+        "$base
+         WHERE o.created_by = ?
+            OR EXISTS (SELECT 1 FROM outcome_attendees oa WHERE oa.outcome_id = o.id AND oa.user_id = ?)
+         ORDER BY o.met_at DESC",
+        [$uid, $uid]
+    );
+}
+
+function outcome_get(int $id): ?array
+{
+    return q_one(
+        "SELECT o.*, c.name AS creator_name
+         FROM outcomes o LEFT JOIN users c ON c.id = o.created_by
+         WHERE o.id = ? LIMIT 1",
+        [$id]
+    );
+}
+
+/** قائمة الحاضرين (مستخدمون) في مخرَج. */
+function outcome_attendees(int $outcomeId): array
+{
+    return q_all(
+        "SELECT u.id, u.name, u.role, u.department, u.email
+         FROM outcome_attendees oa JOIN users u ON u.id = oa.user_id
+         WHERE oa.outcome_id = ?
+         ORDER BY (u.role = 'manager') DESC, (u.role = 'head') DESC, u.name ASC",
+        [$outcomeId]
+    );
+}
+
+/** مُعرّفات الحاضرين فقط (للنموذج). */
+function outcome_attendee_ids(int $outcomeId): array
+{
+    $rows = q_all('SELECT user_id FROM outcome_attendees WHERE outcome_id = ?', [$outcomeId]);
+    return array_map(fn($r) => (int) $r['user_id'], $rows);
+}
+
+/** استبدال قائمة الحاضرين لمخرَج بالمُعرّفات المعطاة (صالحة فقط). */
+function outcome_set_attendees(int $outcomeId, array $userIds): void
+{
+    q('DELETE FROM outcome_attendees WHERE outcome_id = ?', [$outcomeId]);
+    $ids = array_values(array_unique(array_filter(array_map('intval', $userIds), fn($i) => $i > 0)));
+    foreach ($ids as $uid) {
+        // تأكّد أن المستخدم موجود قبل الربط (تفادي كسر المفتاح الأجنبي)
+        if (user_get($uid)) {
+            q('INSERT IGNORE INTO outcome_attendees (outcome_id, user_id) VALUES (?,?)', [$outcomeId, $uid]);
+        }
+    }
+}
+
+function outcome_create(array $d, array $attendeeIds): int
+{
+    q(
+        'INSERT INTO outcomes (title, met_at, body, followup_agreed, followup_at, created_by)
+         VALUES (?,?,?,?,?,?)',
+        [
+            $d['title'],
+            $d['met_at'],
+            $d['body'],
+            !empty($d['followup_agreed']) ? 1 : 0,
+            (!empty($d['followup_agreed']) && !empty($d['followup_at'])) ? $d['followup_at'] : null,
+            $d['created_by'] ?? null,
+        ]
+    );
+    $id = (int) db()->lastInsertId();
+    outcome_set_attendees($id, $attendeeIds);
+    return $id;
+}
+
+function outcome_update(int $id, array $d, array $attendeeIds): void
+{
+    q(
+        'UPDATE outcomes SET title = ?, met_at = ?, body = ?, followup_agreed = ?, followup_at = ?
+         WHERE id = ?',
+        [
+            $d['title'],
+            $d['met_at'],
+            $d['body'],
+            !empty($d['followup_agreed']) ? 1 : 0,
+            (!empty($d['followup_agreed']) && !empty($d['followup_at'])) ? $d['followup_at'] : null,
+            $id,
+        ]
+    );
+    outcome_set_attendees($id, $attendeeIds);
+}
+
+function outcome_delete(int $id): void
+{
+    q('DELETE FROM outcomes WHERE id = ?', [$id]);
+}
+
+/** تسجيل أن المخرجات أُرسلت للحاضرين. */
+function outcome_mark_sent(int $id): void
+{
+    q('UPDATE outcomes SET sent_at = NOW() WHERE id = ?', [$id]);
+}
+
+/** هل يستطيع المستخدم تعديل/إرسال/حذف المخرَج؟ المدير أو منشئه. */
+function outcome_can_edit(array $outcome, array $user): bool
+{
+    return ($user['role'] ?? '') === 'manager' || (int) ($outcome['created_by'] ?? 0) === (int) $user['id'];
+}
+
+/** هل يستطيع المستخدم رؤية المخرَج؟ المدير، منشئه، أو أحد الحاضرين. */
+function outcome_in_scope(array $outcome, array $user): bool
+{
+    if (($user['role'] ?? '') === 'manager') {
+        return true;
+    }
+    $uid = (int) $user['id'];
+    if ((int) ($outcome['created_by'] ?? 0) === $uid) {
+        return true;
+    }
+    $row = q_one('SELECT 1 FROM outcome_attendees WHERE outcome_id = ? AND user_id = ? LIMIT 1', [(int) $outcome['id'], $uid]);
+    return $row !== null;
 }

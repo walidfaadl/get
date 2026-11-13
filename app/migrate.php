@@ -7,13 +7,38 @@ declare(strict_types=1);
  */
 
 if (!defined('SCHEMA_VERSION')) {
-    define('SCHEMA_VERSION', 6); // 5:رابط المشاركة · 6:ردّ صاحب الموعد
+    define('SCHEMA_VERSION', 7); // 5:رابط المشاركة · 6:ردّ صاحب الموعد · 7:مخرجات اللقاءات
 }
 
 /** الترحيلات المطلوبة عند كل إصدار. */
 function migrations_map(): array
 {
     return [
+        7 => [
+            "CREATE TABLE IF NOT EXISTS outcomes (
+                id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                title           VARCHAR(200) NOT NULL,
+                met_at          DATETIME     NOT NULL,
+                body            MEDIUMTEXT   NOT NULL,
+                followup_agreed TINYINT(1)   NOT NULL DEFAULT 0,
+                followup_at     DATETIME     DEFAULT NULL,
+                created_by      INT UNSIGNED DEFAULT NULL,
+                sent_at         DATETIME     DEFAULT NULL,
+                created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_met (met_at),
+                CONSTRAINT fk_outcome_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+            "CREATE TABLE IF NOT EXISTS outcome_attendees (
+                outcome_id INT UNSIGNED NOT NULL,
+                user_id    INT UNSIGNED NOT NULL,
+                PRIMARY KEY (outcome_id, user_id),
+                KEY idx_oa_user (user_id),
+                CONSTRAINT fk_oa_outcome FOREIGN KEY (outcome_id) REFERENCES outcomes(id) ON DELETE CASCADE,
+                CONSTRAINT fk_oa_user    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE
+             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        ],
         6 => [
             "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS recipient_status VARCHAR(20) DEFAULT NULL",
             'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS recipient_note VARCHAR(600) DEFAULT NULL',
