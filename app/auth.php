@@ -84,15 +84,15 @@ function require_manager(): void
     }
 }
 
-/** محاولة تسجيل الدخول. */
-function attempt_login(string $username, string $password): bool
+/** التحقق من اسم المستخدم وكلمة المرور فقط. يُعيد صفّ المستخدم أو null. */
+function auth_verify_credentials(string $username, string $password): ?array
 {
     $u = q_one(
         'SELECT * FROM users WHERE username = ? AND active = 1 LIMIT 1',
         [$username]
     );
     if (!$u || !password_verify($password, $u['password_hash'])) {
-        return false;
+        return null;
     }
     // ترقية التجزئة عند الحاجة
     if (password_needs_rehash($u['password_hash'], PASSWORD_DEFAULT)) {
@@ -101,6 +101,12 @@ function attempt_login(string $username, string $password): bool
             $u['id'],
         ]);
     }
+    return $u;
+}
+
+/** إتمام تسجيل الدخول: تجديد الجلسة وتخزين المستخدم. */
+function auth_login_user(array $u): void
+{
     session_regenerate_id(true);
     $_SESSION['user'] = [
         'id'         => (int) $u['id'],
@@ -109,7 +115,13 @@ function attempt_login(string $username, string $password): bool
         'role'       => $u['role'],
         'department' => $u['department'],
     ];
-    return true;
+    unset($_SESSION['pending_2fa'], $_SESSION['pending_after'], $_SESSION['twofa_tries']);
+}
+
+/** هل يحتاج هذا المستخدم خطوة تحقق ثانية؟ */
+function user_needs_2fa(array $u): bool
+{
+    return (int) ($u['totp_enabled'] ?? 0) === 1 && !empty($u['totp_secret']);
 }
 
 function logout(): void

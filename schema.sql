@@ -10,12 +10,29 @@ CREATE TABLE IF NOT EXISTS users (
   username      VARCHAR(60)  NOT NULL,
   email         VARCHAR(190) DEFAULT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  role          VARCHAR(20)  NOT NULL DEFAULT 'head',   -- manager | head
+  role          VARCHAR(20)  NOT NULL DEFAULT 'head',   -- manager | head | member
   department    VARCHAR(120) DEFAULT NULL,
   active        TINYINT(1)   NOT NULL DEFAULT 1,
+  totp_secret   VARCHAR(64)  DEFAULT NULL,               -- سرّ التحقق بخطوتين (Base32)
+  totp_enabled  TINYINT(1)   NOT NULL DEFAULT 0,
+  totp_recovery TEXT         DEFAULT NULL,               -- رموز الاسترداد (JSON مُجزّأ)
+  wa_phone      VARCHAR(32)  DEFAULT NULL,               -- رقم واتساب للتذكير
+  wa_enabled    TINYINT(1)   NOT NULL DEFAULT 0,
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_username (username)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- سجلّ تذكيرات المواعيد (لمنع التكرار)
+CREATE TABLE IF NOT EXISTS appointment_reminders (
+  appointment_id INT UNSIGNED NOT NULL,
+  user_id        INT UNSIGNED NOT NULL,
+  kind           VARCHAR(20)  NOT NULL,
+  sent_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (appointment_id, user_id, kind),
+  KEY idx_rem_user (user_id),
+  CONSTRAINT fk_rem_appt FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+  CONSTRAINT fk_rem_user FOREIGN KEY (user_id)        REFERENCES users(id)        ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- جدول تعريف بسيط لتتبّع إصدار المخطط (يستعمله نظام الترحيل)

@@ -20,14 +20,17 @@ document.addEventListener('click', function (e) {
     lbl.classList.add('sel');
   }
 
-  // نسخ رابط المشاركة
+  // نسخ نصّ (رابط مشاركة أو مفتاح)
   var copyBtn = e.target.closest('[data-copy]');
   if (copyBtn) {
-    var inp = document.querySelector(copyBtn.getAttribute('data-copy'));
-    if (inp) {
-      inp.select();
-      var done = function () { var t = copyBtn.textContent; copyBtn.textContent = 'تم النسخ ✓'; setTimeout(function () { copyBtn.textContent = t; }, 1600); };
-      if (navigator.clipboard) { navigator.clipboard.writeText(inp.value).then(done, function () { try { document.execCommand('copy'); done(); } catch (x) {} }); }
+    var done = function () { var t = copyBtn.textContent; copyBtn.textContent = 'تم النسخ ✓'; setTimeout(function () { copyBtn.textContent = t; }, 1600); };
+    var txt = copyBtn.getAttribute('data-copy-text');
+    if (txt === null) {
+      var inp = document.querySelector(copyBtn.getAttribute('data-copy'));
+      if (inp) { if (inp.select) inp.select(); txt = inp.value != null ? inp.value : inp.textContent; }
+    }
+    if (txt != null) {
+      if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(done, function () { try { document.execCommand('copy'); done(); } catch (x) {} }); }
       else { try { document.execCommand('copy'); done(); } catch (x) {} }
     }
     return;

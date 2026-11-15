@@ -32,7 +32,7 @@ define('APP_NAME', (string) cfg('app_name', 'TT_APP_NAME', 'نظام المها�
 define('APP_ORG',  (string) cfg('app_org',  'TT_APP_ORG',  'TaskTrak'));
 
 // إصدار الأصول (CSS/JS) لتجاوز الكاش عند التحديث — ارفعه عند تغيير style.css/app.js
-define('ASSET_VER', '10');
+define('ASSET_VER', '11');
 
 // وضع التصحيح: يُظهر تفاصيل الأخطاء. أبقِه false على الإنتاج.
 define('APP_DEBUG', filter_var(cfg('debug', 'TT_DEBUG', '0'), FILTER_VALIDATE_BOOL));
@@ -41,3 +41,13 @@ define('APP_DEBUG', filter_var(cfg('debug', 'TT_DEBUG', '0'), FILTER_VALIDATE_BO
 define('MAIL_ENABLED', filter_var(cfg('mail_enabled', 'TT_MAIL_ENABLED', '1'), FILTER_VALIDATE_BOOL));
 define('MAIL_FROM', (string) cfg('mail_from', 'TT_MAIL_FROM', 'noreply@tasktrak.co'));
 define('MAIL_FROM_NAME', (string) cfg('mail_from_name', 'TT_MAIL_FROM_NAME', APP_NAME));
+
+// تكامل واتساب (تُضبط القيم الحسّاسة في app/config.local.php)
+// WA_PROVIDER: cloud (الرسمي، موصى به) | ultramsg | twilio
+define('WA_ENABLED', filter_var(cfg('wa_enabled', 'TT_WA_ENABLED', '0'), FILTER_VALIDATE_BOOL));
+define('WA_PROVIDER', (string) cfg('wa_provider', 'TT_WA_PROVIDER', 'cloud'));
+define('WA_TOKEN', (string) cfg('wa_token', 'TT_WA_TOKEN', ''));      // Bearer/Instance token
+define('WA_FROM', (string) cfg('wa_from', 'TT_WA_FROM', ''));         // cloud: phone_number_id · ultramsg: instance id · twilio: from (+9665..)
+define('WA_SID', (string) cfg('wa_sid', 'TT_WA_SID', ''));            // twilio Account SID
+define('WA_TEMPLATE', (string) cfg('wa_template', 'TT_WA_TEMPLATE', '')); // cloud: اسم القالب المعتمد (متغيّر {{1}})
+define('WA_LANG', (string) cfg('wa_lang', 'TT_WA_LANG', 'ar'));       // لغة القالب

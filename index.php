@@ -38,12 +38,61 @@ if ($r === 'login') {
         csrf_check();
         $username = trim((string) ($_POST['username'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
-        if (attempt_login($username, $password)) {
+        $u = auth_verify_credentials($username, $password);
+        if ($u) {
+            if (user_needs_2fa($u)) {
+                // خطوة ثانية: احفظ المستخدم المعلّق والوجهة، ووجّه لصفحة الرمز
+                $_SESSION['pending_2fa']   = (int) $u['id'];
+                $_SESSION['pending_after'] = $_SESSION['after_login'] ?? '';
+                $_SESSION['twofa_tries']   = 0;
+                unset($_SESSION['after_login']);
+                redirect(url('2fa'));
+            }
+            auth_login_user($u);
             redirect($afterLogin());
         }
         $error = 'اسم المستخدم أو كلمة المرور غير صحيحة.';
     }
     render('login', ['error' => $error], 'تسجيل الدخول');
+    exit;
+}
+
+/* خطوة التحقق بخطوتين بعد كلمة المرور (قبل تسجيل الدخول الكامل) */
+if ($r === '2fa') {
+    $pid = (int) ($_SESSION['pending_2fa'] ?? 0);
+    if ($pid <= 0) {
+        redirect(url('login'));
+    }
+    $row = user_get($pid);
+    if (!$row || !user_needs_2fa($row)) {
+        unset($_SESSION['pending_2fa'], $_SESSION['pending_after']);
+        redirect(url('login'));
+    }
+    $error = null;
+    if ($isPost) {
+        csrf_check();
+        $_SESSION['twofa_tries'] = (int) ($_SESSION['twofa_tries'] ?? 0) + 1;
+        if ($_SESSION['twofa_tries'] > 8) {
+            unset($_SESSION['pending_2fa'], $_SESSION['pending_after'], $_SESSION['twofa_tries']);
+            flash('محاولات كثيرة. سجّل الدخول من جديد.', 'err');
+            redirect(url('login'));
+        }
+        $code = trim((string) ($_POST['code'] ?? ''));
+        $ok = false;
+        if (preg_match('/^\d{6}$/', $code)) {
+            $ok = totp_verify((string) $row['totp_secret'], $code);
+        }
+        if (!$ok && strpbrk($code, '-') !== false) {
+            $ok = user_consume_recovery($pid, $code);
+        }
+        if ($ok) {
+            $after = (string) ($_SESSION['pending_after'] ?? '');
+            auth_login_user($row);
+            redirect(is_safe_return_path($after) ? $after : url(is_manager() ? 'stats' : 'tasks'));
+        }
+        $error = 'الرمز غير صحيح. تحقّق من تطبيق المصادقة وحاول مجدداً.';
+    }
+    render('twofa', ['error' => $error], 'التحقق بخطوتين');
     exit;
 }
 
@@ -756,7 +805,139 @@ switch ($r) {
             }
             redirect(url('account'));
         }
-        render('account', [], 'حسابي');
+        $row = user_get((int) $me['id']);
+        render('account', [
+            'row'          => $row,
+            'twoFaOn'      => (int) ($row['totp_enabled'] ?? 0) === 1,
+            'recoveryLeft' => recovery_remaining($row['totp_recovery'] ?? null),
+            'waConfigured' => wa_configured(),
+        ], 'حسابي');
+        break;
+    }
+
+    /* ===== بدء إعداد التحقق بخطوتين ===== */
+    case 'tfa_setup': {
+        $row = user_get((int) $me['id']);
+        if ($row && (int) $row['totp_enabled'] === 1) {
+            redirect(url('account'));
+        }
+        // سرّ مؤقّت في الجلسة حتى التأكيد
+        if (empty($_SESSION['tfa_setup_secret'])) {
+            $_SESSION['tfa_setup_secret'] = totp_new_secret();
+        }
+        $secret = $_SESSION['tfa_setup_secret'];
+        render('tfa_setup', [
+            'secret' => $secret,
+            'uri'    => totp_uri($secret, $me['username'], APP_ORG),
+        ], 'تفعيل التحقق بخطوتين');
+        break;
+    }
+
+    /* تأكيد وتفعيل التحقق بخطوتين */
+    case 'tfa_enable': {
+        if (!$isPost) {
+            redirect(url('tfa_setup'));
+        }
+        csrf_check();
+        $secret = (string) ($_SESSION['tfa_setup_secret'] ?? '');
+        $code   = trim((string) ($_POST['code'] ?? ''));
+        if ($secret === '') {
+            redirect(url('tfa_setup'));
+        }
+        if (!totp_verify($secret, $code)) {
+            flash('الرمز غير صحيح. تأكّد من المسح الصحيح وحاول مجدداً.', 'err');
+            redirect(url('tfa_setup'));
+        }
+        $codes = recovery_codes_new();
+        user_enable_totp((int) $me['id'], $secret, recovery_codes_hash($codes));
+        unset($_SESSION['tfa_setup_secret']);
+        flash('تم تفعيل التحقق بخطوتين. احفظ رموز الاسترداد في مكان آمن.');
+        render('tfa_recovery', ['codes' => $codes, 'heading' => 'تم التفعيل — رموز الاسترداد'], 'رموز الاسترداد');
+        break;
+    }
+
+    /* تعطيل التحقق بخطوتين (يتطلّب كلمة المرور) */
+    case 'tfa_disable': {
+        if (!$isPost) {
+            redirect(url('account'));
+        }
+        csrf_check();
+        $pw  = (string) ($_POST['password'] ?? '');
+        $row = user_get((int) $me['id']);
+        if (!$row || !password_verify($pw, $row['password_hash'])) {
+            flash('كلمة المرور غير صحيحة.', 'err');
+            redirect(url('account'));
+        }
+        user_disable_totp((int) $me['id']);
+        flash('تم تعطيل التحقق بخطوتين.');
+        redirect(url('account'));
+        break;
+    }
+
+    /* إعادة توليد رموز الاسترداد (يتطلّب كلمة المرور) */
+    case 'tfa_recovery': {
+        if (!$isPost) {
+            redirect(url('account'));
+        }
+        csrf_check();
+        $pw  = (string) ($_POST['password'] ?? '');
+        $row = user_get((int) $me['id']);
+        if (!$row || (int) $row['totp_enabled'] !== 1) {
+            redirect(url('account'));
+        }
+        if (!password_verify($pw, $row['password_hash'])) {
+            flash('كلمة المرور غير صحيحة.', 'err');
+            redirect(url('account'));
+        }
+        $codes = recovery_codes_new();
+        user_set_recovery((int) $me['id'], recovery_codes_hash($codes));
+        flash('تم توليد رموز استرداد جديدة. أُلغيت الرموز السابقة.');
+        render('tfa_recovery', ['codes' => $codes, 'heading' => 'رموز استرداد جديدة'], 'رموز الاسترداد');
+        break;
+    }
+
+    /* ===== حفظ رقم واتساب والتذكير ===== */
+    case 'wa_save': {
+        if (!$isPost) {
+            redirect(url('account'));
+        }
+        csrf_check();
+        $phoneRaw = trim((string) ($_POST['wa_phone'] ?? ''));
+        $enabled  = isset($_POST['wa_enabled']);
+        $phone = $phoneRaw !== '' ? wa_normalize_phone($phoneRaw) : null;
+        if ($phoneRaw !== '' && $phone === null) {
+            flash('رقم واتساب غير صالح. اكتبه بالصيغة الدولية، مثال: 9665XXXXXXXX.', 'err');
+            redirect(url('account'));
+        }
+        if ($enabled && $phone === null) {
+            flash('أدخِل رقم واتساب لتفعيل التذكير.', 'err');
+            redirect(url('account'));
+        }
+        user_set_whatsapp((int) $me['id'], $phone, $enabled);
+        flash('تم حفظ إعدادات واتساب.');
+        redirect(url('account'));
+        break;
+    }
+
+    /* إرسال رسالة واتساب تجريبية */
+    case 'wa_test': {
+        if (!$isPost) {
+            redirect(url('account'));
+        }
+        csrf_check();
+        $row = user_get((int) $me['id']);
+        $phone = $row['wa_phone'] ?? '';
+        if (!$phone) {
+            flash('احفظ رقم واتساب أولاً.', 'err');
+            redirect(url('account'));
+        }
+        if (!wa_configured()) {
+            flash('تكامل واتساب غير مُهيّأ على الخادم بعد (التوكن). راجع إعدادات الخادم.', 'err');
+            redirect(url('account'));
+        }
+        $res = wa_send((string) $phone, 'رسالة تجريبية من ' . APP_NAME . ' ✅ — تم ربط رقمك بنجاح.');
+        flash($res['ok'] ? 'تم إرسال رسالة تجريبية إلى واتساب.' : ('تعذّر الإرسال: ' . $res['error']), $res['ok'] ? 'ok' : 'err');
+        redirect(url('account'));
         break;
     }
 

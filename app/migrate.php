@@ -7,13 +7,30 @@ declare(strict_types=1);
  */
 
 if (!defined('SCHEMA_VERSION')) {
-    define('SCHEMA_VERSION', 8); // 6:ردّ صاحب الموعد · 7:مخرجات اللقاءات · 8:رابط مشاركة المخرَج
+    define('SCHEMA_VERSION', 9); // 7:المخرجات · 8:رابط مشاركة المخرَج · 9:تحقّق بخطوتين + واتساب
 }
 
 /** الترحيلات المطلوبة عند كل إصدار. */
 function migrations_map(): array
 {
     return [
+        9 => [
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret VARCHAR(64) DEFAULT NULL',
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled TINYINT(1) NOT NULL DEFAULT 0',
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_recovery TEXT DEFAULT NULL',
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS wa_phone VARCHAR(32) DEFAULT NULL',
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS wa_enabled TINYINT(1) NOT NULL DEFAULT 0',
+            "CREATE TABLE IF NOT EXISTS appointment_reminders (
+                appointment_id INT UNSIGNED NOT NULL,
+                user_id        INT UNSIGNED NOT NULL,
+                kind           VARCHAR(20)  NOT NULL,
+                sent_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (appointment_id, user_id, kind),
+                KEY idx_rem_user (user_id),
+                CONSTRAINT fk_rem_appt FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+                CONSTRAINT fk_rem_user FOREIGN KEY (user_id)        REFERENCES users(id)        ON DELETE CASCADE
+             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+        ],
         8 => [
             'ALTER TABLE outcomes ADD COLUMN IF NOT EXISTS share_token VARCHAR(40) DEFAULT NULL',
             'ALTER TABLE outcomes ADD INDEX IF NOT EXISTS idx_oshare (share_token)',

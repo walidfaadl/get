@@ -249,6 +249,103 @@ function user_set_password(int $id, string $password): void
     q('UPDATE users SET password_hash = ? WHERE id = ?', [password_hash($password, PASSWORD_DEFAULT), $id]);
 }
 
+/* ---------- التحقق بخطوتين (2FA) ---------- */
+
+/** تفعيل التحقق بخطوتين: حفظ السرّ ورموز الاسترداد. */
+function user_enable_totp(int $id, string $secret, string $recoveryJson): void
+{
+    q('UPDATE users SET totp_secret = ?, totp_enabled = 1, totp_recovery = ? WHERE id = ?', [$secret, $recoveryJson, $id]);
+}
+
+/** تعطيل التحقق بخطوتين ومسح السرّ ورموز الاسترداد. */
+function user_disable_totp(int $id): void
+{
+    q('UPDATE users SET totp_secret = NULL, totp_enabled = 0, totp_recovery = NULL WHERE id = ?', [$id]);
+}
+
+/** استبدال رموز الاسترداد (JSON مُجزّأ). */
+function user_set_recovery(int $id, string $recoveryJson): void
+{
+    q('UPDATE users SET totp_recovery = ? WHERE id = ?', [$recoveryJson, $id]);
+}
+
+/**
+ * استهلاك رمز استرداد صالح لمستخدم (يُعلَّم مُستخدَماً). يُعيد true عند النجاح.
+ */
+function user_consume_recovery(int $id, string $code): bool
+{
+    $code = trim($code);
+    if ($code === '') {
+        return false;
+    }
+    $row = user_get($id);
+    if (!$row || empty($row['totp_recovery'])) {
+        return false;
+    }
+    $list = json_decode((string) $row['totp_recovery'], true);
+    if (!is_array($list)) {
+        return false;
+    }
+    foreach ($list as $i => $entry) {
+        if (empty($entry['used']) && !empty($entry['h']) && password_verify($code, $entry['h'])) {
+            $list[$i]['used'] = 1;
+            q('UPDATE users SET totp_recovery = ? WHERE id = ?', [json_encode($list, JSON_UNESCAPED_UNICODE), $id]);
+            return true;
+        }
+    }
+    return false;
+}
+
+/** عدد رموز الاسترداد غير المُستخدَمة. */
+function recovery_remaining(?string $recoveryJson): int
+{
+    if (!$recoveryJson) {
+        return 0;
+    }
+    $list = json_decode($recoveryJson, true);
+    if (!is_array($list)) {
+        return 0;
+    }
+    return count(array_filter($list, fn($e) => empty($e['used'])));
+}
+
+/* ---------- واتساب (رقم المستخدم) ---------- */
+
+function user_set_whatsapp(int $id, ?string $phone, bool $enabled): void
+{
+    q('UPDATE users SET wa_phone = ?, wa_enabled = ? WHERE id = ?', [$phone ?: null, $enabled ? 1 : 0, $id]);
+}
+
+/* ---------- تذكيرات المواعيد ---------- */
+
+/** مواعيد يوم معيّن (Y-m-d) ما زالت مجدولة. */
+function appointments_on_date(string $ymd): array
+{
+    return q_all(
+        "SELECT a.*, c.name AS creator_name
+         FROM appointments a LEFT JOIN users c ON c.id = a.created_by
+         WHERE DATE(a.starts_at) = ? AND (a.status = 'مجدول' OR a.status IS NULL)
+         ORDER BY a.starts_at ASC",
+        [$ymd]
+    );
+}
+
+function reminder_already_sent(int $apptId, int $userId, string $kind): bool
+{
+    return q_one(
+        'SELECT 1 FROM appointment_reminders WHERE appointment_id = ? AND user_id = ? AND kind = ? LIMIT 1',
+        [$apptId, $userId, $kind]
+    ) !== null;
+}
+
+function reminder_mark_sent(int $apptId, int $userId, string $kind): void
+{
+    q(
+        'INSERT IGNORE INTO appointment_reminders (appointment_id, user_id, kind) VALUES (?,?,?)',
+        [$apptId, $userId, $kind]
+    );
+}
+
 function user_delete(int $id): void
 {
     q('DELETE FROM users WHERE id = ?', [$id]);
