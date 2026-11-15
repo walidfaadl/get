@@ -534,3 +534,14 @@ button:disabled,.btn-primary:disabled{opacity:.5;cursor:not-allowed}
 .swatch .sw-dot{width:16px;height:16px;flex:none;border-radius:50%;background:var(--sw);box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--line)}
 .swatch.active{border-color:var(--sw);background:color-mix(in srgb,var(--sw) 10%,transparent);color:var(--ink)}
 .swatch.active .sw-dot{box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--sw)}
+
+/* ===== عناوين ملوّنة لبطاقات الرئيسية ===== */
+.home-boxes .card{overflow:hidden;padding-top:0}
+.box-head{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:600;margin:0 -20px 14px;padding:14px 20px;border-bottom:.5px solid var(--line)}
+.box-head svg{width:19px;height:19px;flex:none}
+.bh-tasks{background:var(--info-bg);color:var(--info)}
+.bh-appts{background:var(--doing-bg);color:var(--doing)}
+
+/* ===== عناوين أقسام (صفحة المواعيد المدمجة) ===== */
+.sec-title{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:600;color:var(--ink);margin:0 0 14px}
+.sec-title svg{width:19px;height:19px;flex:none;color:var(--brand)}

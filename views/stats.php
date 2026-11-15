@@ -14,7 +14,7 @@ $shortDate = function ($d) use ($months) {
 <!-- مربّعان: آخر المهام + المواعيد القادمة -->
 <div class="two-col home-boxes">
   <div class="card">
-    <h3 class="card-h">آخر المهام المطلوبة</h3>
+    <h3 class="box-head bh-tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg> آخر المهام المطلوبة</h3>
     <?php if (!$recentTasks): ?>
       <p class="muted">لا مهام بعد.</p>
     <?php else: ?>
@@ -35,7 +35,7 @@ $shortDate = function ($d) use ($months) {
   </div>
 
   <div class="card">
-    <h3 class="card-h">مواعيد قادمة</h3>
+    <h3 class="box-head bh-appts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> مواعيد قادمة</h3>
     <?php if (!$upcomingAppts): ?>
       <p class="muted">لا مواعيد قادمة.</p>
     <?php else: ?>

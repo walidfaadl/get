@@ -416,29 +416,8 @@ switch ($r) {
         break;
     }
 
-    /* ===== المواعيد (المدير + رؤساء الأقسام) ===== */
+    /* ===== المواعيد + التقويم (صفحة واحدة) ===== */
     case 'appointments': {
-        if (!can_manage_appointments()) {
-            redirect(url('tasks'));
-        }
-        $view = pick((string) ($_GET['view'] ?? 'upcoming'), ['upcoming', 'past', 'all'], 'upcoming');
-        $all  = appointments_for($me);
-        $now  = time();
-        $upcoming = array_values(array_filter($all, fn($a) => strtotime($a['starts_at']) >= $now));
-        $past     = array_values(array_filter($all, fn($a) => strtotime($a['starts_at']) < $now));
-        // السابقة تُعرض الأحدث أولاً
-        $past = array_reverse($past);
-        $items = $view === 'past' ? $past : ($view === 'all' ? $all : $upcoming);
-        render('appointments', [
-            'appointments' => $items,
-            'view'         => $view,
-            'counts'       => ['all' => count($all), 'upcoming' => count($upcoming), 'past' => count($past)],
-        ], 'المواعيد');
-        break;
-    }
-
-    /* ===== تقويم المواعيد ===== */
-    case 'calendar': {
         if (!can_manage_appointments()) {
             redirect(url('tasks'));
         }
@@ -447,15 +426,30 @@ switch ($r) {
         $m = (int) ($_GET['m'] ?? 0);
         if ($m < 1 || $m > 12) { $m = (int) date('n', $now); }
         if ($y < 2000 || $y > 2100) { $y = (int) date('Y', $now); }
-        // تجميع المواعيد حسب اليوم (Y-m-d)
+
+        $all = appointments_for($me);
+        $upcoming = array_values(array_filter($all, fn($a) => strtotime($a['starts_at']) >= $now));
+        // تجميع المواعيد حسب اليوم للتقويم
         $byDay = [];
-        foreach (appointments_for($me) as $a) {
+        foreach ($all as $a) {
             $ts = strtotime($a['starts_at']);
-            if ($ts) {
-                $byDay[date('Y-m-d', $ts)][] = $a;
-            }
+            if ($ts) { $byDay[date('Y-m-d', $ts)][] = $a; }
         }
-        render('calendar', ['y' => $y, 'm' => $m, 'byDay' => $byDay], 'التقويم');
+        render('agenda', [
+            'upcoming' => $upcoming,
+            'y'        => $y,
+            'm'        => $m,
+            'byDay'    => $byDay,
+        ], 'المواعيد');
+        break;
+    }
+
+    /* توافق خلفي: التقويم أصبح جزءاً من صفحة المواعيد */
+    case 'calendar': {
+        $p = [];
+        if (isset($_GET['y'])) { $p['y'] = (int) $_GET['y']; }
+        if (isset($_GET['m'])) { $p['m'] = (int) $_GET['m']; }
+        redirect(url('appointments', $p));
         break;
     }
 
