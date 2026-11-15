@@ -19,7 +19,7 @@ if ($u) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<script>(function(){try{var t=localStorage.getItem('tt-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<script>(function(){try{var d=document.documentElement,t=localStorage.getItem('tt-theme');if(t==='dark'||t==='light')d.setAttribute('data-theme',t);var s=localStorage.getItem('tt-skin');if(s&&s!=='warm')d.setAttribute('data-skin',s);}catch(e){}})();</script>
 <title><?= e($__title) ?> — <?= e(APP_NAME) ?></title>
 <!-- PWA -->
 <link rel="manifest" href="/manifest.webmanifest">
@@ -87,6 +87,24 @@ if ($u) {
     <header class="topbar">
       <h1><?= e($__title) ?></h1>
       <div class="topbar-tools">
+        <div class="skin-wrap">
+          <button class="theme-btn" id="skinBtn" type="button" aria-label="تغيير القالب الفني" aria-haspopup="true" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.5-.7 1.5-1.5 0-.4-.2-.8-.4-1-.3-.3-.4-.6-.4-1 0-.8.7-1.5 1.5-1.5H16c3.3 0 6-2.7 6-6 0-4.9-4.5-9-10-9z"/></svg>
+          </button>
+          <div class="skin-menu" id="skinMenu" hidden>
+            <div class="skin-menu-h">القالب الفني</div>
+            <div class="skin-swatches">
+              <button type="button" class="swatch" data-skin-choice="warm" style="--sw:#7B2338"><span class="sw-dot"></span>دافئ</button>
+              <button type="button" class="swatch" data-skin-choice="indigo" style="--sw:#4F46E5"><span class="sw-dot"></span>نيلي</button>
+              <button type="button" class="swatch" data-skin-choice="violet" style="--sw:#6D28D9"><span class="sw-dot"></span>بنفسجي</button>
+              <button type="button" class="swatch" data-skin-choice="emerald" style="--sw:#047857"><span class="sw-dot"></span>زمردي</button>
+              <button type="button" class="swatch" data-skin-choice="teal" style="--sw:#0D9488"><span class="sw-dot"></span>فيروزي</button>
+              <button type="button" class="swatch" data-skin-choice="rose" style="--sw:#E11D48"><span class="sw-dot"></span>وردي</button>
+              <button type="button" class="swatch" data-skin-choice="slate" style="--sw:#334155"><span class="sw-dot"></span>رمادي</button>
+              <button type="button" class="swatch" data-skin-choice="amber" style="--sw:#B45309"><span class="sw-dot"></span>كهرماني</button>
+            </div>
+          </div>
+        </div>
         <button class="theme-btn" id="themeBtn" type="button" aria-label="تبديل الوضع الداكن">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
         </button>

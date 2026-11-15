@@ -12,6 +12,48 @@
   });
 })();
 
+// مُبدّل القالب الفني (الثيمات) — يُحفظ في المتصفح
+(function () {
+  var btn = document.getElementById('skinBtn');
+  var menu = document.getElementById('skinMenu');
+  var root = document.documentElement;
+
+  function current() { return root.getAttribute('data-skin') || 'warm'; }
+  function markActive() {
+    var c = current();
+    document.querySelectorAll('[data-skin-choice]').forEach(function (el) {
+      el.classList.toggle('active', el.getAttribute('data-skin-choice') === c);
+    });
+  }
+  function apply(skin) {
+    if (skin && skin !== 'warm') root.setAttribute('data-skin', skin);
+    else root.removeAttribute('data-skin');
+    try { localStorage.setItem('tt-skin', skin || 'warm'); } catch (e) {}
+    markActive();
+  }
+  markActive();
+
+  function closeMenu() { if (menu) { menu.hidden = true; } if (btn) { btn.setAttribute('aria-expanded', 'false'); } }
+  if (btn && menu) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = menu.hidden;
+      menu.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', function (e) {
+      if (!menu.hidden && !menu.contains(e.target) && e.target !== btn) closeMenu();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
+  }
+  document.addEventListener('click', function (e) {
+    var sw = e.target.closest('[data-skin-choice]');
+    if (!sw) return;
+    apply(sw.getAttribute('data-skin-choice'));
+    closeMenu();
+  });
+})();
+
 // اختيار حالة التعقيب (تظليل الزر المختار)
 document.addEventListener('click', function (e) {
   var lbl = e.target.closest('.status-choices label');
