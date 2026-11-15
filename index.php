@@ -355,6 +355,28 @@ switch ($r) {
         break;
     }
 
+    /* ===== تقويم المواعيد ===== */
+    case 'calendar': {
+        if (!can_manage_appointments()) {
+            redirect(url('tasks'));
+        }
+        $now = time();
+        $y = (int) ($_GET['y'] ?? 0);
+        $m = (int) ($_GET['m'] ?? 0);
+        if ($m < 1 || $m > 12) { $m = (int) date('n', $now); }
+        if ($y < 2000 || $y > 2100) { $y = (int) date('Y', $now); }
+        // تجميع المواعيد حسب اليوم (Y-m-d)
+        $byDay = [];
+        foreach (appointments_for($me) as $a) {
+            $ts = strtotime($a['starts_at']);
+            if ($ts) {
+                $byDay[date('Y-m-d', $ts)][] = $a;
+            }
+        }
+        render('calendar', ['y' => $y, 'm' => $m, 'byDay' => $byDay], 'التقويم');
+        break;
+    }
+
     case 'appt': {
         if (!can_manage_appointments()) {
             redirect(url('tasks'));
@@ -377,15 +399,23 @@ switch ($r) {
             redirect(url('tasks'));
         }
         $appt = null;
+        $prefill = '';
         if ($r === 'appt_edit') {
             $appt = appointment_get((int) ($_GET['id'] ?? 0));
             if (!$appt || !appointment_can_edit($appt, $me)) {
                 redirect(url('appointments'));
             }
+        } else {
+            // تاريخ ممرّر من التقويم (YYYY-MM-DD) → يُعبّأ مسبقاً بوقت افتراضي
+            $d = trim((string) ($_GET['date'] ?? ''));
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) && strtotime($d) !== false) {
+                $prefill = $d . 'T09:00';
+            }
         }
         render('appt_form', [
-            'appt'  => $appt,
-            'heads' => users_heads(),
+            'appt'    => $appt,
+            'heads'   => users_heads(),
+            'prefill' => $prefill,
         ], $appt ? 'تعديل موعد' : 'موعد جديد');
         break;
     }

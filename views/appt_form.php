@@ -1,4 +1,4 @@
-<?php /** @var ?array $appt @var array $heads */
+<?php /** @var ?array $appt @var array $heads @var ?string $prefill */
 $a = $appt ?? [];
 $val = fn(string $k, $d = '') => e((string) ($a[$k] ?? $d));
 // datetime-local يحتاج صيغة YYYY-MM-DDTHH:MM
@@ -6,6 +6,8 @@ $dtLocal = '';
 if (!empty($a['starts_at'])) {
     $ts = strtotime($a['starts_at']);
     $dtLocal = $ts ? date('Y-m-d\TH:i', $ts) : '';
+} elseif (!empty($prefill)) {
+    $dtLocal = $prefill; // تاريخ ممرّر من التقويم
 }
 ?>
 <div class="card form-card">
