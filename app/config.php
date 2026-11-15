@@ -9,6 +9,17 @@ declare(strict_types=1);
 
 $__local = __DIR__ . '/config.local.php';
 $__cfg = is_file($__local) ? (require $__local) : [];
+if (!is_array($__cfg)) {
+    $__cfg = [];
+}
+// إعدادات سرّية إضافية (تُزرَع على الخادم من أسرار GitHub، مثل واتساب) تُدمَج فوق المحلّية
+$__secret = __DIR__ . '/config.secret.php';
+if (is_file($__secret)) {
+    $__s = require $__secret;
+    if (is_array($__s)) {
+        $__cfg = array_merge($__cfg, $__s);
+    }
+}
 
 if (!function_exists('cfg')) {
     function cfg(string $key, string $env, $default)

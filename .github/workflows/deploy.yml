@@ -8,6 +8,8 @@ name: Deploy to tasktrak.co
 #     (ضع محتوى الملف tasktrak_client كاملاً في قيمة الـ Secret)
 #   • اختياري (Variables/Secrets) — لها قيم افتراضية صحيحة لخادمك:
 #       SSH_HOST=srv1.taktek.co  ·  SSH_USER=tasktrak  ·  SSH_PORT=22  ·  DEPLOY_PATH=public_html
+#   • اختياري (Secrets) لتذكير واتساب — تُزرَع تلقائياً في app/config.secret.php على الخادم:
+#       WA_TOKEN (مطلوب للتفعيل) · WA_PROVIDER (cloud|ultramsg|twilio) · WA_FROM · WA_SID · WA_TEMPLATE · WA_LANG
 
 on:
   push:
@@ -47,9 +49,29 @@ jobs:
         run: |
           rsync -az \
             --exclude='.git' --exclude='.github' --exclude='deploy' \
-            --exclude='app/config.local.php' \
+            --exclude='app/config.local.php' --exclude='app/config.secret.php' \
             -e "ssh -i ~/.ssh/id_deploy -p $SSH_PORT -o StrictHostKeyChecking=accept-new" \
             ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+
+      # اختياري: يزرع إعدادات واتساب على الخادم من أسرار GitHub (دون أي سِرّ في المستودع).
+      # يعمل فقط عند ضبط السِرّ WA_TOKEN في إعدادات المستودع.
+      - name: Configure WhatsApp on server (optional)
+        env:
+          WA_PROVIDER: ${{ secrets.WA_PROVIDER }}
+          WA_TOKEN: ${{ secrets.WA_TOKEN }}
+          WA_FROM: ${{ secrets.WA_FROM }}
+          WA_SID: ${{ secrets.WA_SID }}
+          WA_TEMPLATE: ${{ secrets.WA_TEMPLATE }}
+          WA_LANG: ${{ secrets.WA_LANG }}
+        run: |
+          if [ -z "$WA_TOKEN" ]; then
+            echo "لا يوجد سِرّ WA_TOKEN — تخطّي تهيئة واتساب."
+            exit 0
+          fi
+          php -r '$a=["wa_enabled"=>true,"wa_provider"=>(getenv("WA_PROVIDER")?:"cloud"),"wa_token"=>getenv("WA_TOKEN"),"wa_from"=>getenv("WA_FROM")?:"","wa_sid"=>getenv("WA_SID")?:"","wa_template"=>getenv("WA_TEMPLATE")?:"","wa_lang"=>(getenv("WA_LANG")?:"ar")]; file_put_contents("/tmp/config.secret.php","<?php\nreturn ".var_export($a,true).";\n");'
+          scp -i ~/.ssh/id_deploy -P "$SSH_PORT" -o StrictHostKeyChecking=accept-new /tmp/config.secret.php "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/app/config.secret.php"
+          rm -f /tmp/config.secret.php
+          echo "تمت تهيئة واتساب على الخادم (config.secret.php)."
 
       - name: Run migrations and refresh opcache
         run: |

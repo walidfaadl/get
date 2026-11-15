@@ -1,0 +1,44 @@
+name: WhatsApp appointment reminders
+
+# يشغّل سكربت تذكير المواعيد على الخادم كل صباح (بديل عن cron في cPanel).
+# يصل إلى الخادم عبر نفس مفتاح SSH المستخدَم في النشر.
+#
+# التوقيت: 04:00 UTC = 07:00 بتوقيت الرياض (UTC+3). عدّله أدناه إن رغبت.
+# يمكنك أيضاً تشغيله يدوياً من تبويب Actions (Run workflow).
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: reminders
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ vars.SSH_HOST || secrets.SSH_HOST || 'srv1.taktek.co' }}
+      SSH_USER: ${{ vars.SSH_USER || secrets.SSH_USER || 'tasktrak' }}
+      SSH_PORT: ${{ vars.SSH_PORT || secrets.SSH_PORT || '22' }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || secrets.DEPLOY_PATH || 'public_html' }}
+    steps:
+      - name: Prepare SSH key
+        env:
+          KEY: ${{ secrets.SSH_PRIVATE_KEY || secrets.DEPLOY_KEY || secrets.TASKTRAK_SSH_KEY || secrets.SSH_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::لم يُعثر على مفتاح SSH (SSH_PRIVATE_KEY)."
+            exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Run reminders on server
+        run: |
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new \
+            "$SSH_USER@$SSH_HOST" \
+            "cd '$DEPLOY_PATH' && php bin/send_reminders.php"
