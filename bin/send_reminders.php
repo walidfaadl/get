@@ -1,12 +1,15 @@
 <?php
 declare(strict_types=1);
 /*
- * إرسال تذكيرات واتساب بمواعيد اليوم (صباح يوم الموعد).
- * يُجدوَل عبر cron على cPanel، مثلاً كل صباح الساعة 7:
- *   0 7 * * *  /usr/local/bin/php /home/USER/tasktrak/bin/send_reminders.php >> /home/USER/tasktrak/reminders.log 2>&1
+ * تذكير بمواعيد اليوم (صباح يوم الموعد) عبر عدّة قنوات:
+ *   - داخل النظام (الجرس): دائماً، بلا أي إعداد.
+ *   - واتساب: إن فعّل المستخدم رقمه وكان المزوّد مهيّأً على الخادم.
+ *   - تيليجرام: إن ربط المستخدم حسابه وكان البوت مهيّأً.
  *
- * يُرسِل لمنشئ الموعد ولمن شُورك معه (إن فعّلا واتساب وحفظا رقماً)،
- * ولا يكرّر الإرسال لنفس (الموعد/المستخدم) بفضل جدول appointment_reminders.
+ * يُجدوَل عبر GitHub Actions (.github/workflows/reminders.yml) أو cron على cPanel:
+ *   0 7 * * *  /usr/local/bin/php /home/USER/tasktrak/bin/send_reminders.php
+ *
+ * لا يكرّر الإرسال لنفس (الموعد/المستخدم/القناة) بفضل جدول appointment_reminders.
  */
 require __DIR__ . '/../app/bootstrap.php';
 
@@ -17,20 +20,15 @@ if (PHP_SAPI !== 'cli') {
 
 $log = function (string $m): void { fwrite(STDOUT, '[' . date('Y-m-d H:i:s') . '] ' . $m . "\n"); };
 
-if (!wa_configured()) {
-    $log('تكامل واتساب غير مُهيّأ (WA_ENABLED/التوكن). لا شيء للإرسال.');
-    exit(0);
-}
-
 try {
     run_migrations();
     $today = date('Y-m-d');
     $appts = appointments_on_date($today);
-    $sent = 0; $skipped = 0; $failed = 0;
+    $counters = ['inapp' => 0, 'wa' => 0, 'tg' => 0, 'skip' => 0, 'fail' => 0];
 
     foreach ($appts as $a) {
         $apptId = (int) $a['id'];
-        // المستلمون المحتملون: المنشئ + من شُورك معه
+        $text = appt_reminder_text($a);
         $recipients = array_filter(array_unique([
             (int) ($a['created_by'] ?? 0),
             (int) ($a['shared_with'] ?? 0),
@@ -38,20 +36,32 @@ try {
         foreach ($recipients as $uid) {
             if ($uid <= 0) { continue; }
             $u = user_get($uid);
-            if (!$u || empty($u['wa_enabled']) || empty($u['wa_phone'])) { continue; }
-            if (reminder_already_sent($apptId, $uid, 'morning')) { $skipped++; continue; }
-            $res = wa_send((string) $u['wa_phone'], wa_reminder_text($a, $u));
-            if ($res['ok']) {
-                reminder_mark_sent($apptId, $uid, 'morning');
-                $sent++;
-                $log("أُرسل: موعد #$apptId → مستخدم #$uid");
-            } else {
-                $failed++;
-                $log("فشل: موعد #$apptId → مستخدم #$uid — " . $res['error']);
+            if (!$u) { continue; }
+
+            // 1) داخل النظام (الجرس) — دائماً
+            if (!reminder_already_sent($apptId, $uid, 'm_inapp')) {
+                notif_add($uid, 'appointment', 'تذكير بموعد اليوم', (string) $a['subject'], 'appt', $apptId);
+                reminder_mark_sent($apptId, $uid, 'm_inapp');
+                $counters['inapp']++;
+            }
+
+            // 2) واتساب
+            if (wa_configured() && !empty($u['wa_enabled']) && !empty($u['wa_phone']) && !reminder_already_sent($apptId, $uid, 'm_wa')) {
+                $res = wa_send((string) $u['wa_phone'], $text);
+                if ($res['ok']) { reminder_mark_sent($apptId, $uid, 'm_wa'); $counters['wa']++; }
+                else { $counters['fail']++; $log("فشل واتساب: موعد #$apptId → #$uid — " . $res['error']); }
+            }
+
+            // 3) تيليجرام
+            if (tg_configured() && !empty($u['tg_enabled']) && !empty($u['tg_chat_id']) && !reminder_already_sent($apptId, $uid, 'm_tg')) {
+                $res = tg_send((string) $u['tg_chat_id'], $text);
+                if ($res['ok']) { reminder_mark_sent($apptId, $uid, 'm_tg'); $counters['tg']++; }
+                else { $counters['fail']++; $log("فشل تيليجرام: موعد #$apptId → #$uid — " . $res['error']); }
             }
         }
     }
-    $log("تم. مواعيد اليوم=" . count($appts) . " · أُرسل=$sent · مكرّر=$skipped · فشل=$failed");
+    $log("تم. مواعيد اليوم=" . count($appts)
+        . " · داخل النظام={$counters['inapp']} · واتساب={$counters['wa']} · تيليجرام={$counters['tg']} · فشل={$counters['fail']}");
     exit(0);
 } catch (Throwable $e) {
     fwrite(STDERR, 'reminders error: ' . $e->getMessage() . "\n");

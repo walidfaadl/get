@@ -248,6 +248,24 @@ function html_to_text(string $html): string
     return trim((string) $text);
 }
 
+/** نصّ تذكير الموعد (مشترك بين كل القنوات: واتساب/تيليجرام). */
+function appt_reminder_text(array $appt): string
+{
+    $lines = [
+        'تذكير بموعدك اليوم عبر ' . APP_NAME . ':',
+        '',
+        '📌 ' . ($appt['subject'] ?? ''),
+        '🕐 ' . fmt_dt($appt['starts_at'] ?? null),
+    ];
+    if (!empty($appt['with_whom'])) {
+        $lines[] = '👤 مع: ' . $appt['with_whom'];
+    }
+    if (!empty($appt['location'])) {
+        $lines[] = '📍 ' . $appt['location'];
+    }
+    return implode("\n", $lines);
+}
+
 /** عرض قالب داخل التخطيط العام. */
 function render(string $view, array $data = [], ?string $title = null): void
 {

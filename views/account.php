@@ -73,6 +73,51 @@ $waConfigured = $waConfigured ?? false;
   <?php endif; ?>
 </div>
 
+<!-- تذكير تيليجرام -->
+<?php $tgConfigured = $tgConfigured ?? false; $tgLinked = $tgLinked ?? false; $tgLinkUrl = $tgLinkUrl ?? ''; ?>
+<div class="card">
+  <div class="sec-head">
+    <h3 class="card-h" style="margin:0">تذكير المواعيد عبر تيليجرام</h3>
+    <span class="status-chip <?= ($tgLinked && !empty($row['tg_enabled'])) ? 'on' : 'off' ?>"><?= $tgLinked ? (!empty($row['tg_enabled']) ? 'مُفعّل' : 'مربوط (متوقّف)') : 'غير مربوط' ?></span>
+  </div>
+  <p class="muted" style="margin:6px 0 14px">تيليجرام مجاني ويصل كإشعار على هاتفك. اربط حسابك مرّة واحدة لتصلك تذكيرات المواعيد <b>صباح يوم الموعد</b>.</p>
+  <?php if (!$tgConfigured): ?>
+    <div class="flash flash-err" style="margin-bottom:0">تكامل تيليجرام لم يُهيّأ على الخادم بعد (توكن البوت).</div>
+  <?php elseif (!$tgLinked): ?>
+    <?php if ($tgLinkUrl !== ''): ?>
+      <a class="btn-primary" href="<?= e($tgLinkUrl) ?>" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.7 19c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.4 13 1.6 11.5c-1-.3-1-1 .2-1.5l19-7.3c.9-.3 1.6.2 1.3 1.6z"/></svg>
+        ربط تيليجرام
+      </a>
+      <p class="hint" style="margin-top:10px">يفتح البوت في تيليجرام — اضغط «Start» ليُربط حسابك تلقائياً، ثم عُد لهذه الصفحة.</p>
+    <?php else: ?>
+      <div class="flash flash-err" style="margin-bottom:0">لم يُضبط اسم البوت على الخادم (TG_BOT_USERNAME).</div>
+    <?php endif; ?>
+  <?php else: ?>
+    <div class="acct-actions">
+      <form method="post" action="<?= e(url('tg_save')) ?>">
+        <?= csrf_field() ?>
+        <label class="check"><input type="checkbox" name="tg_enabled" <?= !empty($row['tg_enabled']) ? 'checked' : '' ?>> تفعيل تذكير المواعيد عبر تيليجرام</label>
+        <div class="form-foot" style="justify-content:flex-start;gap:8px;margin-top:4px">
+          <button type="submit" class="btn-primary">حفظ</button>
+          <button type="submit" formaction="<?= e(url('tg_test')) ?>" class="btn-soft">إرسال رسالة تجريبية</button>
+        </div>
+      </form>
+      <form method="post" action="<?= e(url('tg_unlink')) ?>" onsubmit="return confirm('فكّ ربط تيليجرام؟')">
+        <?= csrf_field() ?>
+        <button type="submit" class="btn-danger sm">فكّ الربط</button>
+      </form>
+    </div>
+  <?php endif; ?>
+  <?php if (is_manager() && $tgConfigured): ?>
+    <form method="post" action="<?= e(url('tg_setwebhook')) ?>" style="margin-top:14px;border-top:.5px dashed var(--line);padding-top:12px">
+      <?= csrf_field() ?>
+      <button type="submit" class="btn-soft sm">ضبط webhook تيليجرام (مرّة واحدة)</button>
+      <span class="hint" style="margin-inline-start:8px">للمدير: يُفعّل استقبال ربط الحسابات.</span>
+    </form>
+  <?php endif; ?>
+</div>
+
 <div class="card form-card">
   <h3 class="card-h">تغيير كلمة المرور</h3>
   <form method="post" action="<?= e(url('account')) ?>">

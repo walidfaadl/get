@@ -316,6 +316,47 @@ function user_set_whatsapp(int $id, ?string $phone, bool $enabled): void
     q('UPDATE users SET wa_phone = ?, wa_enabled = ? WHERE id = ?', [$phone ?: null, $enabled ? 1 : 0, $id]);
 }
 
+/* ---------- تيليجرام (ربط المستخدم) ---------- */
+
+/** يضمن وجود رمز ربط تيليجرام للمستخدم ويعيده. */
+function user_tg_link_token(int $id): string
+{
+    $row = user_get($id);
+    if ($row && !empty($row['tg_link_token'])) {
+        return $row['tg_link_token'];
+    }
+    $token = 'u' . $id . '-' . bin2hex(random_bytes(8));
+    q('UPDATE users SET tg_link_token = ? WHERE id = ?', [$token, $id]);
+    return $token;
+}
+
+/** ربط محادثة تيليجرام بمستخدم عبر رمز الربط (من /start). يُعيد معرّف المستخدم أو 0. */
+function user_link_telegram_by_token(string $token, string $chatId): int
+{
+    $token = trim($token);
+    if ($token === '' || $chatId === '') {
+        return 0;
+    }
+    $row = q_one('SELECT id FROM users WHERE tg_link_token = ? AND active = 1 LIMIT 1', [$token]);
+    if (!$row) {
+        return 0;
+    }
+    $uid = (int) $row['id'];
+    // فعّل التذكير تلقائياً عند الربط، وامسح الرمز المؤقّت
+    q('UPDATE users SET tg_chat_id = ?, tg_enabled = 1, tg_link_token = NULL WHERE id = ?', [$chatId, $uid]);
+    return $uid;
+}
+
+function user_set_tg_enabled(int $id, bool $enabled): void
+{
+    q('UPDATE users SET tg_enabled = ? WHERE id = ?', [$enabled ? 1 : 0, $id]);
+}
+
+function user_unlink_telegram(int $id): void
+{
+    q('UPDATE users SET tg_chat_id = NULL, tg_enabled = 0, tg_link_token = NULL WHERE id = ?', [$id]);
+}
+
 /* ---------- تذكيرات المواعيد ---------- */
 
 /** مواعيد يوم معيّن (Y-m-d) ما زالت مجدولة. */

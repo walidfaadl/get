@@ -159,6 +159,39 @@ if ($r === 'share_respond') {
     redirect(url('share', ['t' => $token]));
 }
 
+/* Webhook تيليجرام — عام، لاستقبال تحديثات البوت وربط الحسابات */
+if ($r === 'tg_webhook') {
+    header('Content-Type: application/json; charset=utf-8');
+    // تأمين: سِرّ عبر ترويسة تيليجرام أو معامل s
+    $hdr = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '';
+    $qs  = (string) ($_GET['s'] ?? '');
+    if (TG_WEBHOOK_SECRET !== '' && !hash_equals(TG_WEBHOOK_SECRET, (string) $hdr) && !hash_equals(TG_WEBHOOK_SECRET, $qs)) {
+        http_response_code(403);
+        echo '{"ok":false}';
+        exit;
+    }
+    $raw = file_get_contents('php://input') ?: '';
+    $upd = json_decode($raw, true);
+    $msg = is_array($upd) ? ($upd['message'] ?? null) : null;
+    if ($msg && isset($msg['chat']['id'])) {
+        $chatId = (string) $msg['chat']['id'];
+        $text   = trim((string) ($msg['text'] ?? ''));
+        if (preg_match('/^\/start\s+(\S+)/', $text, $m)) {
+            $uid = user_link_telegram_by_token($m[1], $chatId);
+            if ($uid > 0) {
+                $u = user_get($uid);
+                tg_send($chatId, 'تم ربط حسابك (' . ($u['name'] ?? '') . ') بنجاح ✅ — ستصلك تذكيرات المواعيد هنا.');
+            } else {
+                tg_send($chatId, 'تعذّر الربط: الرمز غير صالح أو منتهٍ. أعِد المحاولة من صفحة «حسابي».');
+            }
+        } elseif ($text === '/start') {
+            tg_send($chatId, 'مرحباً بك في ' . APP_NAME . '. لربط حسابك، استخدم زرّ «ربط تيليجرام» من صفحة «حسابي».');
+        }
+    }
+    echo '{"ok":true}';
+    exit;
+}
+
 /* ---------- تتطلب تسجيل دخول ---------- */
 require_login();
 $me = current_user();
@@ -806,11 +839,20 @@ switch ($r) {
             redirect(url('account'));
         }
         $row = user_get((int) $me['id']);
+        $tgConfigured = tg_configured();
+        $tgLinked = !empty($row['tg_chat_id']);
+        $tgLinkUrl = '';
+        if ($tgConfigured && !$tgLinked && TG_BOT_USERNAME !== '') {
+            $tgLinkUrl = tg_link_url(user_tg_link_token((int) $me['id']));
+        }
         render('account', [
             'row'          => $row,
             'twoFaOn'      => (int) ($row['totp_enabled'] ?? 0) === 1,
             'recoveryLeft' => recovery_remaining($row['totp_recovery'] ?? null),
             'waConfigured' => wa_configured(),
+            'tgConfigured' => $tgConfigured,
+            'tgLinked'     => $tgLinked,
+            'tgLinkUrl'    => $tgLinkUrl,
         ], 'حسابي');
         break;
     }
@@ -937,6 +979,66 @@ switch ($r) {
         }
         $res = wa_send((string) $phone, 'رسالة تجريبية من ' . APP_NAME . ' ✅ — تم ربط رقمك بنجاح.');
         flash($res['ok'] ? 'تم إرسال رسالة تجريبية إلى واتساب.' : ('تعذّر الإرسال: ' . $res['error']), $res['ok'] ? 'ok' : 'err');
+        redirect(url('account'));
+        break;
+    }
+
+    /* ===== تيليجرام: تفعيل/تعطيل، فكّ الربط، تجربة ===== */
+    case 'tg_save': {
+        if (!$isPost) {
+            redirect(url('account'));
+        }
+        csrf_check();
+        user_set_tg_enabled((int) $me['id'], isset($_POST['tg_enabled']));
+        flash('تم حفظ إعدادات تيليجرام.');
+        redirect(url('account'));
+        break;
+    }
+
+    case 'tg_unlink': {
+        if ($isPost) {
+            csrf_check();
+            user_unlink_telegram((int) $me['id']);
+            flash('تم فكّ ربط تيليجرام.');
+        }
+        redirect(url('account'));
+        break;
+    }
+
+    case 'tg_test': {
+        if (!$isPost) {
+            redirect(url('account'));
+        }
+        csrf_check();
+        $row = user_get((int) $me['id']);
+        if (empty($row['tg_chat_id'])) {
+            flash('اربط تيليجرام أولاً.', 'err');
+            redirect(url('account'));
+        }
+        if (!tg_configured()) {
+            flash('تكامل تيليجرام غير مُهيّأ على الخادم بعد.', 'err');
+            redirect(url('account'));
+        }
+        $res = tg_send((string) $row['tg_chat_id'], 'رسالة تجريبية من ' . APP_NAME . ' ✅');
+        flash($res['ok'] ? 'تم إرسال رسالة تجريبية إلى تيليجرام.' : ('تعذّر الإرسال: ' . $res['error']), $res['ok'] ? 'ok' : 'err');
+        redirect(url('account'));
+        break;
+    }
+
+    /* ضبط webhook تيليجرام (المدير) */
+    case 'tg_setwebhook': {
+        require_manager();
+        if (!$isPost) {
+            redirect(url('account'));
+        }
+        csrf_check();
+        if (!tg_configured()) {
+            flash('اضبط توكن البوت على الخادم أولاً.', 'err');
+            redirect(url('account'));
+        }
+        $hookUrl = absolute_url('tg_webhook', TG_WEBHOOK_SECRET !== '' ? ['s' => TG_WEBHOOK_SECRET] : []);
+        $res = tg_set_webhook($hookUrl, TG_WEBHOOK_SECRET);
+        flash($res['ok'] ? 'تم ضبط webhook تيليجرام بنجاح.' : ('تعذّر الضبط: ' . $res['error']), $res['ok'] ? 'ok' : 'err');
         redirect(url('account'));
         break;
     }

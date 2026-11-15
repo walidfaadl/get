@@ -18,6 +18,7 @@ require_once __DIR__ . '/models.php';
 require_once __DIR__ . '/migrate.php';
 require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/whatsapp.php';
+require_once __DIR__ . '/telegram.php';
 
 // صفحات ديناميكية بمصادقة: امنع تخزينها في المتصفح (أمان + يضمن عمل صفحة عدم الاتصال)
 if (PHP_SAPI !== 'cli' && !headers_sent()) {

@@ -7,13 +7,18 @@ declare(strict_types=1);
  */
 
 if (!defined('SCHEMA_VERSION')) {
-    define('SCHEMA_VERSION', 9); // 7:المخرجات · 8:رابط مشاركة المخرَج · 9:تحقّق بخطوتين + واتساب
+    define('SCHEMA_VERSION', 10); // 8:مشاركة المخرَج · 9:2FA+واتساب · 10:تيليجرام
 }
 
 /** الترحيلات المطلوبة عند كل إصدار. */
 function migrations_map(): array
 {
     return [
+        10 => [
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS tg_chat_id VARCHAR(32) DEFAULT NULL',
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS tg_enabled TINYINT(1) NOT NULL DEFAULT 0',
+            'ALTER TABLE users ADD COLUMN IF NOT EXISTS tg_link_token VARCHAR(40) DEFAULT NULL',
+        ],
         9 => [
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret VARCHAR(64) DEFAULT NULL',
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled TINYINT(1) NOT NULL DEFAULT 0',

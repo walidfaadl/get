@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS users (
   totp_recovery TEXT         DEFAULT NULL,               -- رموز الاسترداد (JSON مُجزّأ)
   wa_phone      VARCHAR(32)  DEFAULT NULL,               -- رقم واتساب للتذكير
   wa_enabled    TINYINT(1)   NOT NULL DEFAULT 0,
+  tg_chat_id    VARCHAR(32)  DEFAULT NULL,               -- معرّف محادثة تيليجرام
+  tg_enabled    TINYINT(1)   NOT NULL DEFAULT 0,
+  tg_link_token VARCHAR(40)  DEFAULT NULL,               -- رمز ربط تيليجرام المؤقّت
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_username (username)

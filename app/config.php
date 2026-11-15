@@ -62,3 +62,9 @@ define('WA_FROM', (string) cfg('wa_from', 'TT_WA_FROM', ''));         // cloud: 
 define('WA_SID', (string) cfg('wa_sid', 'TT_WA_SID', ''));            // twilio Account SID
 define('WA_TEMPLATE', (string) cfg('wa_template', 'TT_WA_TEMPLATE', '')); // cloud: اسم القالب المعتمد (متغيّر {{1}})
 define('WA_LANG', (string) cfg('wa_lang', 'TT_WA_LANG', 'ar'));       // لغة القالب
+
+// تكامل تيليجرام (مجاني — عبر بوت)
+define('TG_ENABLED', filter_var(cfg('tg_enabled', 'TT_TG_ENABLED', '0'), FILTER_VALIDATE_BOOL));
+define('TG_BOT_TOKEN', (string) cfg('tg_bot_token', 'TT_TG_BOT_TOKEN', ''));     // توكن البوت من @BotFather
+define('TG_BOT_USERNAME', (string) cfg('tg_bot_username', 'TT_TG_BOT_USERNAME', '')); // اسم البوت (بلا @) لرابط الربط
+define('TG_WEBHOOK_SECRET', (string) cfg('tg_webhook_secret', 'TT_TG_WEBHOOK_SECRET', '')); // سِرّ تأمين الـ webhook

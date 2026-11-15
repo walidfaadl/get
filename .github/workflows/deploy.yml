@@ -8,8 +8,9 @@ name: Deploy to tasktrak.co
 #     (ضع محتوى الملف tasktrak_client كاملاً في قيمة الـ Secret)
 #   • اختياري (Variables/Secrets) — لها قيم افتراضية صحيحة لخادمك:
 #       SSH_HOST=srv1.taktek.co  ·  SSH_USER=tasktrak  ·  SSH_PORT=22  ·  DEPLOY_PATH=public_html
-#   • اختياري (Secrets) لتذكير واتساب — تُزرَع تلقائياً في app/config.secret.php على الخادم:
-#       WA_TOKEN (مطلوب للتفعيل) · WA_PROVIDER (cloud|ultramsg|twilio) · WA_FROM · WA_SID · WA_TEMPLATE · WA_LANG
+#   • اختياري (Secrets) للتذكير — تُزرَع تلقائياً في app/config.secret.php على الخادم:
+#       واتساب:   WA_TOKEN · WA_PROVIDER (cloud|ultramsg|twilio) · WA_FROM · WA_SID · WA_TEMPLATE · WA_LANG
+#       تيليجرام: TG_BOT_TOKEN · TG_BOT_USERNAME · TG_WEBHOOK_SECRET
 
 on:
   push:
@@ -53,9 +54,9 @@ jobs:
             -e "ssh -i ~/.ssh/id_deploy -p $SSH_PORT -o StrictHostKeyChecking=accept-new" \
             ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
 
-      # اختياري: يزرع إعدادات واتساب على الخادم من أسرار GitHub (دون أي سِرّ في المستودع).
-      # يعمل فقط عند ضبط السِرّ WA_TOKEN في إعدادات المستودع.
-      - name: Configure WhatsApp on server (optional)
+      # اختياري: يزرع إعدادات واتساب/تيليجرام على الخادم من أسرار GitHub (دون أي سِرّ في المستودع).
+      # يعمل فقط عند ضبط WA_TOKEN و/أو TG_BOT_TOKEN في إعدادات المستودع.
+      - name: Configure messaging on server (optional)
         env:
           WA_PROVIDER: ${{ secrets.WA_PROVIDER }}
           WA_TOKEN: ${{ secrets.WA_TOKEN }}
@@ -63,15 +64,28 @@ jobs:
           WA_SID: ${{ secrets.WA_SID }}
           WA_TEMPLATE: ${{ secrets.WA_TEMPLATE }}
           WA_LANG: ${{ secrets.WA_LANG }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_BOT_USERNAME: ${{ secrets.TG_BOT_USERNAME }}
+          TG_WEBHOOK_SECRET: ${{ secrets.TG_WEBHOOK_SECRET }}
         run: |
-          if [ -z "$WA_TOKEN" ]; then
-            echo "لا يوجد سِرّ WA_TOKEN — تخطّي تهيئة واتساب."
+          if [ -z "$WA_TOKEN" ] && [ -z "$TG_BOT_TOKEN" ]; then
+            echo "لا أسرار مراسلة (WA_TOKEN/TG_BOT_TOKEN) — تخطّي."
             exit 0
           fi
-          php -r '$a=["wa_enabled"=>true,"wa_provider"=>(getenv("WA_PROVIDER")?:"cloud"),"wa_token"=>getenv("WA_TOKEN"),"wa_from"=>getenv("WA_FROM")?:"","wa_sid"=>getenv("WA_SID")?:"","wa_template"=>getenv("WA_TEMPLATE")?:"","wa_lang"=>(getenv("WA_LANG")?:"ar")]; file_put_contents("/tmp/config.secret.php","<?php\nreturn ".var_export($a,true).";\n");'
+          php -r '
+            $a=[];
+            if (getenv("WA_TOKEN")) { $a=array_merge($a,[
+              "wa_enabled"=>true,"wa_provider"=>(getenv("WA_PROVIDER")?:"cloud"),
+              "wa_token"=>getenv("WA_TOKEN"),"wa_from"=>getenv("WA_FROM")?:"",
+              "wa_sid"=>getenv("WA_SID")?:"","wa_template"=>getenv("WA_TEMPLATE")?:"","wa_lang"=>(getenv("WA_LANG")?:"ar")]); }
+            if (getenv("TG_BOT_TOKEN")) { $a=array_merge($a,[
+              "tg_enabled"=>true,"tg_bot_token"=>getenv("TG_BOT_TOKEN"),
+              "tg_bot_username"=>getenv("TG_BOT_USERNAME")?:"","tg_webhook_secret"=>getenv("TG_WEBHOOK_SECRET")?:""]); }
+            file_put_contents("/tmp/config.secret.php","<?php\nreturn ".var_export($a,true).";\n");
+          '
           scp -i ~/.ssh/id_deploy -P "$SSH_PORT" -o StrictHostKeyChecking=accept-new /tmp/config.secret.php "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/app/config.secret.php"
           rm -f /tmp/config.secret.php
-          echo "تمت تهيئة واتساب على الخادم (config.secret.php)."
+          echo "تمت تهيئة المراسلة على الخادم (config.secret.php)."
 
       - name: Run migrations and refresh opcache
         run: |

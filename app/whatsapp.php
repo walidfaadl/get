@@ -126,22 +126,3 @@ function wa_send(string $phone, string $text): array
     ]);
     return ['ok' => $res['ok'], 'error' => $res['ok'] ? '' : ('Cloud API: ' . $res['code'] . ' ' . mb_substr($res['body'], 0, 180))];
 }
-
-/** نصّ تذكير الموعد. */
-function wa_reminder_text(array $appt, array $user): string
-{
-    $when = fmt_dt($appt['starts_at']);
-    $lines = [
-        'تذكير بموعدك اليوم عبر ' . APP_NAME . ':',
-        '',
-        '📌 ' . $appt['subject'],
-        '🕐 ' . $when,
-    ];
-    if (!empty($appt['with_whom'])) {
-        $lines[] = '👤 مع: ' . $appt['with_whom'];
-    }
-    if (!empty($appt['location'])) {
-        $lines[] = '📍 ' . $appt['location'];
-    }
-    return implode("\n", $lines);
-}
