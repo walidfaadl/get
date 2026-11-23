@@ -7,13 +7,17 @@ declare(strict_types=1);
  */
 
 if (!defined('SCHEMA_VERSION')) {
-    define('SCHEMA_VERSION', 10); // 8:مشاركة المخرَج · 9:2FA+واتساب · 10:تيليجرام
+    define('SCHEMA_VERSION', 11); // 9:2FA+واتساب · 10:تيليجرام · 11:رابط مشاركة المهمة
 }
 
 /** الترحيلات المطلوبة عند كل إصدار. */
 function migrations_map(): array
 {
     return [
+        11 => [
+            'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS share_token VARCHAR(40) DEFAULT NULL',
+            'ALTER TABLE tasks ADD INDEX IF NOT EXISTS idx_task_share (share_token)',
+        ],
         10 => [
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS tg_chat_id VARCHAR(32) DEFAULT NULL',
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS tg_enabled TINYINT(1) NOT NULL DEFAULT 0',

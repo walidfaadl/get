@@ -76,8 +76,8 @@ function task_create(array $d): int
 {
     q(
         'INSERT INTO tasks
-            (title, details, department, priority, status, due_date, manager_note, created_by, assigned_to)
-         VALUES (?,?,?,?,?,?,?,?,?)',
+            (title, details, department, priority, status, due_date, manager_note, created_by, assigned_to, share_token)
+         VALUES (?,?,?,?,?,?,?,?,?,?)',
         [
             $d['title'],
             $d['details'],
@@ -88,9 +88,29 @@ function task_create(array $d): int
             $d['manager_note'] ?: null,
             $d['created_by'] ?? null,
             $d['assigned_to'] ?: null,
+            bin2hex(random_bytes(16)),
         ]
     );
     return (int) db()->lastInsertId();
+}
+
+/** يضمن وجود مُعرّف مشاركة للمهمة ويعيده (يولّده إن لزم). */
+function task_ensure_token(int $id): string
+{
+    $row = q_one('SELECT share_token FROM tasks WHERE id = ? LIMIT 1', [$id]);
+    if ($row && !empty($row['share_token'])) {
+        return $row['share_token'];
+    }
+    $token = bin2hex(random_bytes(16));
+    q('UPDATE tasks SET share_token = ? WHERE id = ?', [$token, $id]);
+    return $token;
+}
+
+/** هل يطابق المُعرّف المعطى مُعرّف مشاركة المهمة؟ (مقارنة زمن ثابت) */
+function task_token_matches(array $task, string $token): bool
+{
+    $stored = (string) ($task['share_token'] ?? '');
+    return $stored !== '' && strlen($token) >= 8 && hash_equals($stored, $token);
 }
 
 function task_update(int $id, array $d): void

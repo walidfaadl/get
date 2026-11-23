@@ -247,14 +247,22 @@ switch ($r) {
             render('message', ['heading' => 'غير موجودة', 'text' => 'المهمة غير موجودة.'], 'خطأ');
             break;
         }
-        if (!task_in_scope($task, $me)) {
+        $token    = (string) ($_GET['t'] ?? '');
+        $inScope  = task_in_scope($task, $me);
+        $viaShare = $token !== '' && task_token_matches($task, $token);
+        if (!$inScope && !$viaShare) {
             http_response_code(403);
             render('message', ['heading' => 'غير مصرّح', 'text' => 'هذه المهمة خارج نطاق قسمك.'], 'غير مصرّح');
             break;
         }
+        // رابط المشاركة يظهر للمدير أو منشئ المهمة
+        $canShare = is_manager() || (int) ($task['created_by'] ?? 0) === (int) $me['id'];
         render('task_detail', [
-            'task'     => $task,
-            'comments' => comments_for($id),
+            'task'       => $task,
+            'comments'   => comments_for($id),
+            'canAct'     => $inScope,
+            'viaShare'   => $viaShare && !$inScope,
+            'shareToken' => $canShare ? task_ensure_token($id) : null,
         ], $task['title']);
         break;
     }

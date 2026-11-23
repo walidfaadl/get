@@ -58,12 +58,14 @@ CREATE TABLE IF NOT EXISTS tasks (
   reply        TEXT         DEFAULT NULL,
   replied_by   VARCHAR(120) DEFAULT NULL,
   replied_at   DATETIME     DEFAULT NULL,
+  share_token  VARCHAR(40)  DEFAULT NULL,
   created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_status (status),
   KEY idx_assigned (assigned_to),
   KEY idx_created (created_at),
+  KEY idx_task_share (share_token),
   CONSTRAINT fk_task_creator  FOREIGN KEY (created_by)  REFERENCES users(id) ON DELETE SET NULL,
   CONSTRAINT fk_task_assignee FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
